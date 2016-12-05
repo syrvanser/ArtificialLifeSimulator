@@ -34,25 +34,31 @@ import java.util.stream.Collectors;
  */
 public class GUIInterface extends Application {
     private static final long UPDATERATE = 1000000000; //1 sec
-    private boolean isRunning = false;
     private static final String CURRENT_VERSION = "0.7";
-    private AWorld world = new AWorld();
-//    private boolean displayMap = true;
-    private Properties currentProperties = new Properties();
     public static int IMGSIZE = 20;
+    VBox rtPane;
+    private boolean isRunning = false;
+    private AWorld world = new AWorld();
+    //    private boolean displayMap = true;
+    private Properties currentProperties = new Properties();
     private File propFile;
     private File lastConf;
     private Stage stagePrimary;
     private Canvas canvas;
-    VBox rtPane;
+    private BorderPane bp;
+    private Group root;
     private GraphicsContext gc;
-  //  FileChooser imgFC = new FileChooser();
+    //  FileChooser imgFC = new FileChooser();
     private FileChooser propFC = new FileChooser();
 
     private MenuBar setMenu() {
         MenuBar menuBar = new MenuBar();
-        File dir = new File("./configurations");
-        lastConf = new File(dir, "last.properties");
+
+        File configDirectory = new File("./configurations");
+        lastConf = new File(configDirectory, "last.properties");
+        propFC.setInitialDirectory(configDirectory);
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Configuration files (*.properties)", "*.properties");
+        propFC.getExtensionFilters().add(extFilter);
         InputStream inputStream;
         try {
             inputStream = new FileInputStream(lastConf);
@@ -62,11 +68,12 @@ public class GUIInterface extends Application {
             try {
                 //noinspection ResultOfMethodCallIgnored
                 lastConf.createNewFile();
+
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
         }
-        //  fromFile(currentProperties);
+
 
         Menu mFile = new Menu("File");
         Menu mView = new Menu("View");
@@ -74,7 +81,7 @@ public class GUIInterface extends Application {
         Menu mSimulation = new Menu("Simulation");
         Menu mHelp = new Menu("Help");
 
-        if (!dir.exists() && !dir.mkdir()) {
+        if (!configDirectory.exists() && !configDirectory.mkdir()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Failed to create directory for config files!");
@@ -84,7 +91,7 @@ public class GUIInterface extends Application {
 
         MenuItem mNew = new MenuItem("New");
         mNew.setOnAction(actionEvent -> {
-            propFile = new File(dir, "new.properties");
+            propFile = new File(configDirectory, "new.properties");
             currentProperties = new Properties();
             world.clearConfig();
             world.clear();
@@ -274,8 +281,8 @@ public class GUIInterface extends Application {
                             e.setSpecies(res.n);
                             e.setTargetX(res.x);
                             e.setTargetY(res.y);
-                            e.setCurrentX(res.x*IMGSIZE);
-                            e.setCurrentY(res.y*IMGSIZE);
+                            e.setCurrentX(res.x * IMGSIZE);
+                            e.setCurrentY(res.y * IMGSIZE);
                             e.setDetectionRadius(res.r);
                             e.setEnergy(res.e);
                         } else {
@@ -492,6 +499,7 @@ public class GUIInterface extends Application {
         System.out.println("/");
     }
 */
+
     /**
      * Accepts a string and uses it to initialise the world
      *
@@ -516,6 +524,7 @@ public class GUIInterface extends Application {
             int obsAmount = world.getSizeY() * world.getSizeX() * obsNum / 100;
 
             for (int i = 0; i < foodAmount; i++) { //add food
+                System.out.println(world.maxEntities + "ffff");
                 add("Food", 'f');
 
             }
@@ -536,6 +545,12 @@ public class GUIInterface extends Application {
                 //world.addPair(pair);
                 counter += 2;
             }
+            canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
+            root.getChildren().add(canvas);
+
+            gc = canvas.getGraphicsContext2D();
+
+            bp.setCenter(root);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -575,16 +590,18 @@ public class GUIInterface extends Application {
         try {
             int loadedWidth = Integer.parseInt(prop.getProperty("width"));
             int loadedHeight = Integer.parseInt(prop.getProperty("height"));
+            world.clear();
+            world.clearConfig();
             world = new AWorld(loadedWidth, loadedHeight, loadedHeight * loadedWidth);
             int loadedObstacles = Integer.parseInt(prop.getProperty("obs"));
             int loadedFood = Integer.parseInt(prop.getProperty("food"));
             Set<String> keys = prop.stringPropertyNames();
-            world.clear();
-            world.clearConfig();
+
             int foodAmount = world.getSizeY() * world.getSizeX() * loadedFood / 100;
             int obsAmount = world.getSizeY() * world.getSizeX() * loadedObstacles / 100;
             for (int i = 0; i < foodAmount; i++) { //add food
                 add("Food", 'f');
+
 
             }
             world.setMaxFood(foodAmount);
@@ -604,6 +621,12 @@ public class GUIInterface extends Application {
 
             }
 
+            canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
+            root.getChildren().add(canvas);
+
+            gc = canvas.getGraphicsContext2D();
+
+            bp.setCenter(root);
             return true;
 
 
@@ -675,12 +698,16 @@ public class GUIInterface extends Application {
         stagePrimary = primaryStage;
         stagePrimary.setResizable(false);
         primaryStage.setTitle("Life form sim");
-        BorderPane bp = new BorderPane();
+        bp = new BorderPane();
         bp.setPadding(new Insets(0, 0, 0, 0));
 
         bp.setTop(setMenu());
 
-        Group root = new Group();
+        root = new Group();
+
+        System.out.println(currentProperties.getProperty("ant"));
+        fromFile(currentProperties);
+        System.out.println(world.getEntities());
 
         canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
         root.getChildren().add(canvas);
@@ -690,10 +717,10 @@ public class GUIInterface extends Application {
         bp.setCenter(root);
 
         world.show(this);
-        fromText("20 20 20 20 ant 5");
+        // fromText("20 20 20 20 ant 5");
         AnimationTimer timer = new AnimationTimer() {
-            private long lastUpdate = 0;
             int i = 1;
+            private long lastUpdate = 0;
 
             public void handle(long currentNanoTime) {
                 if (isRunning) {

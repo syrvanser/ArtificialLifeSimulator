@@ -16,6 +16,34 @@ import static uk.ac.reading.syrvanser.Logic.Direction.*;
  * @author syrvanser
  */
 public class AWorld {
+    private static Random rng = new Random();
+    public int maxEntities;
+    private int maxObstacles = 0;
+    private int maxFood = 0;
+    private int foodAmount;
+    private int lifeAmount;
+    private int sizeX;
+    private int sizeY;
+    private List<AnEntity> entities;
+    private List<Map.Entry<String, Integer>> speciesList = new ArrayList<>();
+
+    public AWorld(int hSize, int vSize, int maxEntities) {
+        this.sizeY = vSize;
+        this.sizeX = hSize;
+        this.maxEntities = maxEntities;
+        entities = new ArrayList<>();
+        foodAmount = 0;
+        lifeAmount = 0;
+    }
+    public AWorld() {
+        this.sizeY = 10;
+        this.sizeX = 10;
+        this.maxEntities = 100;
+        entities = new ArrayList<>();
+        foodAmount = 0;
+        lifeAmount = 0;
+    }
+
     public int getMaxObstacles() {
         return maxObstacles;
     }
@@ -32,53 +60,22 @@ public class AWorld {
         this.maxFood = maxFood;
     }
 
-    private int maxObstacles = 0;
-    private int maxFood = 0;
-    private int foodAmount;
-    private int lifeAmount;
-    private int sizeX;
-    private int sizeY;
-
-    private List<AnEntity> entities;
-    private int maxEntities;
-    private static Random rng = new Random();
-
     public List<Map.Entry<String, Integer>> getSpeciesList() {
         return speciesList;
     }
 
-    private List<Map.Entry<String, Integer>> speciesList = new ArrayList<>();
-
-    public List<AnEntity> getEntities(){
+    public List<AnEntity> getEntities() {
         return entities;
     }
 
     public String getCurrentConfig() {
         StringBuilder configuration = new StringBuilder("");
-        configuration.append(sizeX).append(" ").append(sizeY).append(" ").append(maxFood*100/(sizeX*sizeY)).append(" ").append(maxObstacles*100/(sizeX*sizeY));
+        configuration.append(sizeX).append(" ").append(sizeY).append(" ").append(maxFood * 100 / (sizeX * sizeY)).append(" ").append(maxObstacles * 100 / (sizeX * sizeY));
         for (Map.Entry<String, Integer> spec :
                 speciesList) {
             configuration.append(" ").append(spec.getKey()).append(" ").append(spec.getValue());
         }
         return new String(configuration);
-    }
-
-    public AWorld(int hSize, int vSize, int maxEntities) {
-        this.sizeY = vSize;
-        this.sizeX = hSize;
-        this.maxEntities = maxEntities;
-        entities = new ArrayList<>();
-        foodAmount = 0;
-        lifeAmount = 0;
-    }
-
-    public AWorld() {
-        this.sizeY = 10;
-        this.sizeX = 10;
-        this.maxEntities = 100;
-        entities = new ArrayList<>();
-        foodAmount = 0;
-        lifeAmount = 0;
     }
 
     public int getSizeX() {
@@ -122,10 +119,11 @@ public class AWorld {
      */
     public boolean addEntity(String str, char c) {
         //Scanner s = new Scanner(System.in);
+
         if (AnEntity.getEntityCounter() >= maxEntities)
             return false;
-        if (AnEntity.getEntityCounter() > sizeX * sizeY)
-            return false;
+        //if (AnEntity.getEntityCounter() > sizeX * sizeY)
+        //  return false;
         int hPosition;
         int vPosition;
 
