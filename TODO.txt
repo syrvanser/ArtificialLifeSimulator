@@ -1,0 +1,9 @@
+TODO:
+-Use last config when the program is reopened
+-Add View, Sim and Help menus DONE
+-Fix sizes
+-Custom images
+-Entity selection DONE
+-Filechooser opens correct dir
+-Fix arena sizes
+-Side panel for map info //kinda done, use a window for now
