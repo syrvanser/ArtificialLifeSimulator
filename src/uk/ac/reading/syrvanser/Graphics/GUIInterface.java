@@ -551,10 +551,12 @@ public class GUIInterface extends Application {
             gc = canvas.getGraphicsContext2D();
 
             bp.setCenter(root);
+            save(lastConf);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+
         return true;
     }
 
@@ -627,6 +629,7 @@ public class GUIInterface extends Application {
             gc = canvas.getGraphicsContext2D();
 
             bp.setCenter(root);
+            save(lastConf);
             return true;
 
 
@@ -662,12 +665,23 @@ public class GUIInterface extends Application {
 
         if (file != null) {
             try {
-                output = new FileOutputStream(file);
+                PrintWriter writer = new PrintWriter(lastConf);
+                writer.print("");
+                writer.close();
+                output = new FileOutputStream(lastConf);
                 currentProperties.store(output, "ALS config file");
                 output.close();
+
+                if (file != lastConf) {
+                    writer = new PrintWriter(file);
+                    writer.print("");
+                    writer.close();
+
+                    output = new FileOutputStream(file);
+                    currentProperties.store(output, "ALS config file");
+                    output.close();
+                }
                 this.propFile = file;
-                if (!file.equals(lastConf))
-                    save(lastConf);
             } catch (IOException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
