@@ -294,93 +294,7 @@ public class GUIInterface extends Application {
                 });
             }
         });
-                        /*
 
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setTitle("Select an action");
-                        alert.setHeaderText("What would you like to modify?");
-                        alert.setContentText("Choose your option");
-
-                        ButtonType buttonPos = new ButtonType("Position");
-                        ButtonType buttonName = new ButtonType("Name");
-                        ButtonType buttonEnergy = new ButtonType("Energy");
-                        ButtonType buttonDetect = new ButtonType("Detection");
-                        ButtonType buttonImg = new ButtonType("Image");
-
-                        ButtonType buttonCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-                        alert.getButtonTypes().setAll(buttonName, buttonPos, buttonDetect, buttonEnergy, buttonImg, buttonCancel);
-
-                        Optional<ButtonType> choice = alert.showAndWait();
-
-                        choice.ifPresent(res -> {
-                            try {
-                                Scanner s = new Scanner(System.in);
-                                if (res == buttonPos) {
-                                    TextInputDialog coordsDialog = new TextInputDialog();
-                                    coordsDialog.setTitle("Coordinates");
-                                    coordsDialog.setHeaderText("Enter x and y:");
-
-                                    Optional<String> coordOpt = dialog.showAndWait();
-                                    coordOpt.ifPresent(coord -> {
-                                        try {
-                                            String[] strArray = coord.split(" ", 2);
-                                            int newX = Integer.parseInt(strArray[0]);
-                                            int newY = Integer.parseInt(strArray[1]);
-                                            if ((newX > 0 && newY > 0 && newX < world.getSizeX() && newY < world.getSizeY()) && (world.getEntitySymbol(newX, newY) == ' ')) {
-                                                lf.setTargetX(newX);
-                                                lf.setTargetY(newY);
-                                            } else {
-                                                throw new NumberFormatException();
-                                            }
-
-                                        } catch (NumberFormatException e) {
-                                            Alert alert1 = new Alert(Alert.AlertType.ERROR);
-                                            alert1.setTitle("Error");
-                                            alert1.setHeaderText("Wrong input!");
-                                            alert1.showAndWait();
-                                        }
-                                    });
-
-                                } else if (res == buttonName) {
-
-                                    TextInputDialog nameDialog = new TextInputDialog();
-                                    nameDialog.setTitle("Name");
-                                    nameDialog.setHeaderText("Enter the new name:");
-
-                                    Optional<String> nameOpt = dialog.showAndWait();
-                                    nameOpt.ifPresent(newName -> {
-                                        lf.setSpecies(newName);
-                                        world.addPair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                        world.removePair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                    });
-                                } else if (res == buttonEnergy) {
-                                    TextInputDialog nameDialog = new TextInputDialog();
-                                    nameDialog.setTitle("Energy");
-                                    nameDialog.setHeaderText("Enter the new energy");
-
-                                    Optional<String> nameOpt = dialog.showAndWait();
-                                    nameOpt.ifPresent(newName -> {
-                                        lf.setSpecies(newName);
-                                        world.addPair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                        world.removePair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                    });
-                                    lf.setEnergy(newEnergy);
-                                } else if (res == buttonDetect) {
-                                    int newRadius = s.nextInt();
-
-                                    if (newRadius < 0)
-                                        System.out.println("Can't have negative detection radius!");
-                                    else
-                                        lf.setDetectionRadius(newRadius);
-
-                                }
-
-
-                            } catch (NumberFormatException e) {
-                                System.out.println("Wrong number!");
-                            }
-                        }); */
 
 
         MenuItem mRemove = new MenuItem("Remove");
@@ -442,17 +356,6 @@ public class GUIInterface extends Application {
     }
 
 
-  /*  private boolean add() {
-        Scanner s = new Scanner(System.in);
-
-
-        System.out.println("Enter species name:");
-        String name = s.next();
-        System.out.println("Enter species symbol:");
-        char symbol = s.next().charAt(0);
-        return world.addEntity(name, symbol);
-    }
-*/
 
     private boolean add(String s, char c) {
         return world.addEntity(s, c);
@@ -471,32 +374,6 @@ public class GUIInterface extends Application {
     }
 
 
-  /*
-    private void display() {
-        System.out.print("/");
-        for (int i = 0; i < world.getSizeX(); i++)
-            System.out.print("-");
-        System.out.println("\\");
-        for (int i = 0; i < world.getSizeY(); i++) {
-            System.out.print("|");
-            for (int j = 0; j < world.getSizeX(); j++) {
-                AnEntity e = world.getEntity(j, i);
-                if (e == null)
-                    System.out.print(" ");
-                else if (e.getSymbol() == 'f')
-                    System.out.print(e.getEnergy());
-                else
-                    System.out.print(e.getSymbol());
-            }
-            System.out.println("|");
-        }
-        System.out.print("\\");
-        for (int i = 0; i < world.getSizeX(); i++)
-            System.out.print("-");
-        System.out.println("/");
-    }
-*/
-
     /**
      * Accepts a string and uses it to initialise the world
      *
@@ -504,17 +381,15 @@ public class GUIInterface extends Application {
      * @return true if successful, false otherwise
      */
     private boolean fromText(String input) {
-        world.clear();
-        world.clearConfig();
+
         try {
             String[] array = input.split(" ");
             int x = Integer.parseInt(array[0]);
             int y = Integer.parseInt(array[1]);
+            world.clear();
+            world.clearConfig();
             world = new AWorld(x, y, x * y);
             IMGSIZE = world.getSizeX() > world.getSizeY() ? (512 / world.getSizeX()) : (512 / world.getSizeY());
-            //   canvas.setHeight(y * IMGSIZE);
-            //  canvas.setWidth(x * IMGSIZE);
-            //   gc = canvas.getGraphicsContext2D();
             int foodNum = Integer.parseInt(array[2]);
             int obsNum = Integer.parseInt(array[3]);
             int foodAmount = world.getSizeY() * world.getSizeX() * foodNum / 100;
@@ -522,7 +397,6 @@ public class GUIInterface extends Application {
             int obsAmount = world.getSizeY() * world.getSizeX() * obsNum / 100;
 
             for (int i = 0; i < foodAmount; i++) { //add food
-                // System.out.println(world.maxEntities + "ffff");
                 add("Food", 'f');
 
             }
@@ -539,16 +413,10 @@ public class GUIInterface extends Application {
 
                     add(form, form.charAt(0));
                 }
-                //Map.Entry<String, Integer> pair = new AbstractMap.SimpleEntry<>(form, num);
-                //world.addPair(pair);
+
                 counter += 2;
             }
-            //     canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
-            //   root.getChildren().add(canvas);
 
-            // gc = canvas.getGraphicsContext2D();
-
-            // bp.setCenter(root);
             save(lastConf);
         } catch (Exception e) {
             e.printStackTrace();
@@ -559,32 +427,6 @@ public class GUIInterface extends Application {
     }
 
 
-
-
-/*
-
-
-    private void run(int num) {
-        if (displayMap) {
-            for (int i = 0; i < num; i++) {
-                //System.out.flush();
-                System.out.println();
-                System.out.print("------Epoch #" + (i + 1) + "------");
-                if (i <= 9)
-                    System.out.print("-");
-                System.out.println();
-                world.run();
-                //System.out.println(Arrays.toString(world.entities));
-                display();
-                //System.out.println(Arrays.toString(world.entities));
-                System.out.println("---------------------");
-            }
-        } else {
-            for (int i = 0; i < num; i++)
-                world.run();
-        }
-    }
-*/
 
     private boolean fromFile(Properties prop) {
         try {
@@ -770,12 +612,6 @@ public class GUIInterface extends Application {
         };
 
         timer.start();
-        //  rtPane = new VBox();
-        //  rtPane.setAlignment(Pos.CENTER);
-        // rtPane.setPadding(new Insets(25, 25, 25, 25));
-
-        //bp.setRight(rtPane);
-
         Scene scene = new Scene(bp, 800, 600);
         bp.prefHeightProperty().bind(scene.heightProperty());
         bp.prefWidthProperty().bind(scene.widthProperty());

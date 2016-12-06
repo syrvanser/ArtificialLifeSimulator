@@ -38,6 +38,7 @@ public class AWorld {
         foodAmount = 0;
         lifeAmount = 0;
     }
+
     public AWorld() {
         this.sizeY = 10;
         this.sizeX = 10;
@@ -93,11 +94,7 @@ public class AWorld {
         return sizeX;
     }
 
-    /*
-    public void setSizeX(int sizeX) {
-        this.sizeX = sizeX;
-    }
-    */
+
     public int getSizeY() {
         return sizeY;
     }
@@ -110,11 +107,7 @@ public class AWorld {
 
     }
 
-    /*
-        public void setSizeY(int sizeY) {
-            this.sizeY = sizeY;
-        }
-    */
+
     public void clearConfig() {
         maxFood = 0;
         maxEntities = 0;
@@ -165,7 +158,6 @@ public class AWorld {
     }
 
 
-
     /**
      * Checks if there are any entities at the given position
      *
@@ -184,21 +176,6 @@ public class AWorld {
         return null;
     }
 
-    /**
-     * @param x x coordinate
-     * @param y y coordinate
-     * @return entity's symbol, whitespace if empty
-     */
-    char getEntitySymbol(int x, int y) {
-        for (AnEntity e :
-                entities) {
-            if (e == null)
-                continue;
-            if (e.getTargetX() == x && e.getTargetY() == y)
-                return e.getSymbol();
-        }
-        return ' ';
-    }
 
     /**
      * @param x x position
@@ -209,7 +186,7 @@ public class AWorld {
         if (x < 0 || y < 0 || x >= sizeX || y >= sizeY)
             return false;
         AnEntity tmp = getEntity(x, y);
-        return (tmp == null || tmp instanceof Food );
+        return (tmp == null || tmp instanceof Food);
     }
 
 
@@ -277,11 +254,11 @@ public class AWorld {
                 if (directions.isEmpty()) { //if no food around move to the random direction
 
 
-                System.out.println("DEBUG: random");
+              /*  System.out.println("DEBUG: random");
                 System.out.println(e.smellFood(N, 5) + " " + canMove(e.getTargetX(), e.getTargetY() - 1));
                 System.out.println(e.smellFood(S, 5) + " " + canMove(e.getTargetX(), e.getTargetY() + 1));
                 System.out.println(e.smellFood(E, 5) + " " + canMove(e.getTargetX() + 1, e.getTargetY()));
-                System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY()));
+                System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY())); */
 
                     Direction d = Direction.getRandomDirection(); //Pick a random direction
                     int randomX = e.getTargetX();
@@ -306,26 +283,26 @@ public class AWorld {
                         e.setTargetY(randomY);
                     }
                 } else { //if not empty pick a random direction from the list
-                    System.out.println("DEBUG: food");
+                   /* System.out.println("DEBUG: food");
                     System.out.println(e.smellFood(N, 5) + " " + canMove(e.getTargetX(), e.getTargetY() - 1));
                     System.out.println(e.smellFood(S, 5) + " " + canMove(e.getTargetX(), e.getTargetY() + 1));
                     System.out.println(e.smellFood(E, 5) + " " + canMove(e.getTargetX() + 1, e.getTargetY()));
-                    System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY()));
+                    System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY()))*/
                     int minimum = Integer.MAX_VALUE;
 
                     for (Map.Entry<Direction, Integer> entry :
                             directions) {
-                        if(entry.getValue()<minimum)
+                        if (entry.getValue() < minimum)
                             minimum = entry.getValue();
-                       // System.out.println(entry.getValue());
+
                     }
                     List<Direction> dir = new ArrayList<>();
-                    for(Map.Entry<Direction, Integer> entry :
-                            directions){
-                        if(entry.getValue() == minimum)
+                    for (Map.Entry<Direction, Integer> entry :
+                            directions) {
+                        if (entry.getValue() == minimum)
                             dir.add(entry.getKey());
                     }
-                 //   System.out.println(dir.size());
+
                     int index = rng.nextInt(dir.size());
                     Direction d = dir.get(index);
                     switch (d) {
@@ -358,7 +335,7 @@ public class AWorld {
         entities.removeAll(Collections.singleton(null));
     }
 
-    public void remove(AnEntity e){
+    public void remove(AnEntity e) {
         entities.set(entities.indexOf(e), null);
         lifeAmount--;
     }
@@ -377,10 +354,8 @@ public class AWorld {
     }
 
     public void show(GUIInterface i) {
-        //System.out.println("showing..." + entities.size());
         for (AnEntity entity : entities) entity.display(i);
         for (AnEntity entity : objectsToRemove) entity.display(i);
-        // loop through array of all robots, displaying each
     }
 
     public void removePair(Map.Entry<String, Integer> pair) {
@@ -398,26 +373,4 @@ public class AWorld {
         }
     }
 
-    public LifeForm findById(int id) {
-        for (AnEntity e :
-                entities) {
-            if (e != null && e instanceof LifeForm && e.getUniqueID() == id)
-                return (LifeForm) e;
-
-        }
-        return null;
-    }
-/*
-    public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-        System.out.println("Enter max amount of entities");
-        int max = s.nextInt();
-        AWorld world = new AWorld(100, 100, max);
-        for (int i = 0; i < max; i++) {
-            world.addEntity();
-        }
-        world.listEntities();
-        s.close();
-    }
-*/
 }

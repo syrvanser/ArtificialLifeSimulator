@@ -56,20 +56,7 @@ public abstract class AnEntity {
         AnEntity.entityCounter = 0;
     }
 
-    /**
-     * Default constructor
-     */
-     /*
-    AnEntity() {
-        this.species = "Unknown";
-        this.symbol = '?';
-        this.targetX = 0;
-        this.targetY = 0;
-        this.energy = 0;
-        this.uniqueID = entityCounter++;
-        this.world = null;
-    }
-    */
+
     public double getImageOpacity() {
         return imageOpacity;
     }
@@ -174,56 +161,5 @@ public abstract class AnEntity {
         i.show(image, targetX * IMGSIZE, targetY * IMGSIZE, imageOpacity);                            // just send details the entity to the interface
     }
 
-/*
-    public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-        /*String name;
-        char symbol;
-        int targetX;
-        int targetY;
-        int energy;
-        System.out.println("Enter species name:");
-        name = s.nextLine();
-        System.out.println("Enter species symbol:");
-        symbol = s.next().charAt(0);
-        System.out.println("Enter species horizontal position:");
-        targetX = s.nextInt();
-        System.out.println("Enter species vertical position:");
-        targetY = s.nextInt();
-        System.out.println("Enter species energy:");
-        energy = s.nextInt();
-        System.out.println(new AnEntity(name, symbol, targetX, targetY, energy).toText());
-        //
-
-        String name;
-        char symbol;
-        int hPosition;
-        int vPosition;
-        int energy;
-        AnEntity[] entities = new AnEntity[3];
-        for (int i = 0; i < 3; i++) {
-            System.out.println("---Entity #" + (i + 1) + "---");
-            System.out.println("Enter species name:");
-            name = s.next();
-            System.out.println("Enter species symbol:");
-            symbol = s.next().charAt(0);
-            System.out.println("Enter species horizontal position:");
-            hPosition = s.nextInt();
-            System.out.println("Enter species vertical position:");
-            vPosition = s.nextInt();
-            System.out.println("Enter species energy:");
-            energy = s.nextInt();
-
-            System.out.println();
-            entities[i] = new AnEntity(name, symbol, hPosition, vPosition, energy, null);
-        }
-
-        for (AnEntity e :
-                entities) {
-            System.out.println(e.toText());
-        }
-        s.close();
-    }
-*/
 }
 
