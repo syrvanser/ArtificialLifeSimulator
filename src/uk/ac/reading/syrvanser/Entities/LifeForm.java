@@ -12,7 +12,16 @@ import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
  * @author syrvanser
  */
 public class LifeForm extends AnEntity {
+    private int currentX;
+    private int currentY;
     private int detectionRadius = 5;
+
+    public LifeForm(String species, char symbol, int hPosition, int vPosition, AWorld world) {
+        super(species, symbol, hPosition, vPosition, 10, world);
+        this.currentX = targetX * IMGSIZE;
+        this.currentY = targetY * IMGSIZE;
+        this.image = new Image("/uk/ac/reading/syrvanser/img/doge.png");
+    }
 
     public int getCurrentX() {
         return currentX;
@@ -30,9 +39,6 @@ public class LifeForm extends AnEntity {
         this.currentY = currentY;
     }
 
-    int currentX;
-    int currentY;
-
     public int getDetectionRadius() {
         return detectionRadius;
     }
@@ -40,14 +46,6 @@ public class LifeForm extends AnEntity {
     public void setDetectionRadius(int detectionRadius) {
         this.detectionRadius = detectionRadius;
     }
-
-    public LifeForm(String species, char symbol, int hPosition, int vPosition, AWorld world) {
-        super(species, symbol, hPosition, vPosition, 100000, world);
-        this.currentX = targetX * IMGSIZE;
-        this.currentY = targetY * IMGSIZE;
-        this.image = new Image("/uk/ac/reading/syrvanser/img/doge.png");
-    }
-
 
     public void updatePosition() {
 
@@ -61,7 +59,7 @@ public class LifeForm extends AnEntity {
 
     @Override
     public void display(GUIInterface i) {
-        i.show(image, currentX, currentY);							// just send details the entity to the interface
+        i.show(image, currentX, currentY, imageOpacity);                            // just send details the entity to the interface
     }
 
     @Override
@@ -71,6 +69,8 @@ public class LifeForm extends AnEntity {
                 ", symbol=" + symbol +
                 ", X=" + targetX +
                 ", Y=" + targetY +
+                ", absX=" + currentX +
+                ", absY=" + currentY +
                 ", energy=" + energy +
                 ", uniqueID=" + uniqueID +
                 '}';

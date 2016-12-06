@@ -12,8 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -35,11 +35,9 @@ import java.util.stream.Collectors;
 public class GUIInterface extends Application {
     private static final long UPDATERATE = 1000000000; //1 sec
     private static final String CURRENT_VERSION = "0.7";
-    public static int IMGSIZE = 20;
-    VBox rtPane;
+    public static int IMGSIZE = 512 / 10;
     private boolean isRunning = false;
     private AWorld world = new AWorld();
-    //    private boolean displayMap = true;
     private Properties currentProperties = new Properties();
     private File propFile;
     private File lastConf;
@@ -48,7 +46,6 @@ public class GUIInterface extends Application {
     private BorderPane bp;
     private Group root;
     private GraphicsContext gc;
-    //  FileChooser imgFC = new FileChooser();
     private FileChooser propFC = new FileChooser();
 
     private MenuBar setMenu() {
@@ -514,9 +511,10 @@ public class GUIInterface extends Application {
             int x = Integer.parseInt(array[0]);
             int y = Integer.parseInt(array[1]);
             world = new AWorld(x, y, x * y);
-            canvas.setHeight(y * IMGSIZE);
-            canvas.setWidth(x * IMGSIZE);
-            gc = canvas.getGraphicsContext2D();
+            IMGSIZE = world.getSizeX() > world.getSizeY() ? (512 / world.getSizeX()) : (512 / world.getSizeY());
+            //   canvas.setHeight(y * IMGSIZE);
+            //  canvas.setWidth(x * IMGSIZE);
+            //   gc = canvas.getGraphicsContext2D();
             int foodNum = Integer.parseInt(array[2]);
             int obsNum = Integer.parseInt(array[3]);
             int foodAmount = world.getSizeY() * world.getSizeX() * foodNum / 100;
@@ -524,7 +522,7 @@ public class GUIInterface extends Application {
             int obsAmount = world.getSizeY() * world.getSizeX() * obsNum / 100;
 
             for (int i = 0; i < foodAmount; i++) { //add food
-                System.out.println(world.maxEntities + "ffff");
+                // System.out.println(world.maxEntities + "ffff");
                 add("Food", 'f');
 
             }
@@ -545,12 +543,12 @@ public class GUIInterface extends Application {
                 //world.addPair(pair);
                 counter += 2;
             }
-            canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
-            root.getChildren().add(canvas);
+            //     canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
+            //   root.getChildren().add(canvas);
 
-            gc = canvas.getGraphicsContext2D();
+            // gc = canvas.getGraphicsContext2D();
 
-            bp.setCenter(root);
+            // bp.setCenter(root);
             save(lastConf);
         } catch (Exception e) {
             e.printStackTrace();
@@ -595,6 +593,7 @@ public class GUIInterface extends Application {
             world.clear();
             world.clearConfig();
             world = new AWorld(loadedWidth, loadedHeight, loadedHeight * loadedWidth);
+            IMGSIZE = world.getSizeX() > world.getSizeY() ? (512 / world.getSizeX()) : (512 / world.getSizeY());
             int loadedObstacles = Integer.parseInt(prop.getProperty("obs"));
             int loadedFood = Integer.parseInt(prop.getProperty("food"));
             Set<String> keys = prop.stringPropertyNames();
@@ -623,12 +622,12 @@ public class GUIInterface extends Application {
 
             }
 
-            canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
-            root.getChildren().add(canvas);
+            //    canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
+            //     root.getChildren().add(canvas);
 
-            gc = canvas.getGraphicsContext2D();
+            //    gc = canvas.getGraphicsContext2D();
 
-            bp.setCenter(root);
+            //    bp.setCenter(root);
             save(lastConf);
             return true;
 
@@ -693,15 +692,16 @@ public class GUIInterface extends Application {
         }
     }
 
-    public void show(Image image, int x, int y) {
+    public void show(Image image, int x, int y, double opacity) {
+        gc.setGlobalAlpha(opacity);
         gc.drawImage(image, x, y, IMGSIZE, IMGSIZE);
     }
 
     private void draw() {
-
-        gc.clearRect(0, 0, 512, 512);
+        gc.setGlobalAlpha(1);
+        gc.clearRect(0, 0, world.getSizeX() * IMGSIZE, world.getSizeY() * IMGSIZE);
         gc.setFill(Color.LIGHTGREY);
-        gc.fillRect(0, 0, 512, 512);
+        gc.fillRect(0, 0, world.getSizeX() * IMGSIZE, world.getSizeY() * IMGSIZE);
         world.show(this);
     }
 
@@ -719,17 +719,29 @@ public class GUIInterface extends Application {
 
         root = new Group();
 
-        System.out.println(currentProperties.getProperty("ant"));
+        //  System.out.println(currentProperties.getProperty("ant"));
         fromFile(currentProperties);
         System.out.println(world.getEntities());
-
-        canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
+        canvas = new Canvas(512, 512);
         root.getChildren().add(canvas);
 
         gc = canvas.getGraphicsContext2D();
 
         bp.setCenter(root);
 
+        Button pause = new Button("Pause");
+        Button play = new Button("Play");
+        Button reset = new Button("Reset");
+        pause.setOnAction(event -> isRunning = false);
+        play.setOnAction(event -> isRunning = true);
+        reset.setOnAction(event -> fromText(world.getCurrentConfig()));
+
+        HBox topBox = new HBox();
+        topBox.getChildren().addAll(play, pause, reset);
+        bp.setBottom(topBox);
+        HBox.setMargin(play, new Insets(10, 10, 10, 10));
+        HBox.setMargin(pause, new Insets(10, 10, 10, 10));
+        HBox.setMargin(reset, new Insets(10, 10, 10, 10));
         world.show(this);
         // fromText("20 20 20 20 ant 5");
         AnimationTimer timer = new AnimationTimer() {
@@ -741,9 +753,9 @@ public class GUIInterface extends Application {
 
                     if (currentNanoTime - lastUpdate >= (UPDATERATE / IMGSIZE) * i) {
                         i++;
-                        // System.out.println("YEAH");
                         world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition());
-
+                        world.getObjectsToRemove().forEach(e -> e.setImageOpacity(e.getImageOpacity() >= 0.1 ? e.getImageOpacity() - 0.05 : 0));
+                        world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
                     }
                     if (currentNanoTime - lastUpdate >= UPDATERATE) {
                         i = 0;
@@ -770,302 +782,6 @@ public class GUIInterface extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        /*Scanner s = new Scanner(System.in);
-        char ch;
-        File dir = new File("./configurations");
-        if (!dir.exists()) {
-            if (dir.mkdir()) {
-                System.out.println("Config directory is created!");
-            } else {
-                System.out.println("Failed to create directory!");
-            }
-        }
-
-        boolean exitFlag;
-        do {
-            System.out.println();
-            System.out.print("Enter (F)ile, (V)iew, (E)dit, (S)imulation or (H)elp > ");
-            ch = s.next().charAt(0);
-            s.nextLine();
-            switch (ch) {
-
-
-                case 'v':
-                case 'V':
-                    exitFlag = false;
-                    do {
-                        System.out.println("(1)	Display configuration");
-                        System.out.println("(2)	Edit configuration");
-                        System.out.println("(3)	Display info about life forms");
-                        System.out.println("(4)	Display info about map ");
-                        ch = s.next().charAt(0);
-                        s.nextLine();
-                        switch (ch) {
-                            case '1': //display config
-                                System.out.println("Current config:");
-                                System.out.println(world.getCurrentConfig());
-                                exitFlag = true;
-                                break;
-                            case '2': //edit config
-                                System.out.println("Enter a string:");
-                                String inputString = s.nextLine();
-                                if (fromText(inputString)) System.out.println("Done");
-                                else
-                                    System.out.println("Something went wrong!");
-                                exitFlag = true;
-                                break;
-                            case '3': //show life forms info
-                                list();
-                                exitFlag = true;
-                                break;
-                            case '4': //show map info
-                                System.out.println(world.stats());
-                                display();
-                                exitFlag = true;
-                                break;
-                            default:
-
-                        }
-                    } while (!exitFlag);
-                    break;
-
-                case 'e':
-                case 'E':
-                    exitFlag = false;
-                    do {
-                        System.out.println("(1)	Modify current life form parameters");
-                        System.out.println("(2)	Remove current life form");
-                        System.out.println("(3)	Add a new life form");
-                        ch = s.next().charAt(0);
-                        s.nextLine();
-                        switch (ch) {
-                            case '1': //Modify
-                                System.out.println("Enter ID of the life form you would like to modify: ");
-                                try {
-                                    int id = s.nextInt();
-                                    LifeForm lf = world.findById(id);
-                                    if (lf == null)
-                                        System.out.println("Not Found!");
-                                    else {
-                                        System.out.println("Wold you like to change (P)osition, (N)ame, (E)nergy or (D)etection radius?");
-                                        ch = s.next().charAt(0);
-                                        s.nextLine();
-                                        try {
-                                            switch (ch) {
-                                                case 'p':
-                                                case 'P':
-                                                    System.out.println("Enter new x and y");
-
-                                                    int newX = s.nextInt();
-                                                    int newY = s.nextInt();
-                                                    if ((newX > 0 && newY > 0 && newX < world.getSizeX() && newY < world.getSizeY()) && (world.getEntitySymbol(newX, newY) == ' ')) {
-                                                        lf.setTargetX(newX);
-                                                        lf.setTargetY(newY);
-                                                    }
-                                                    break;
-
-                                                case 'n':
-                                                case 'N':
-                                                    System.out.println("Enter the new name:");
-                                                    String newName = s.nextLine();
-                                                    System.out.println("Enter the new symbol:");
-                                                    char newSymbol = s.next().charAt(0);
-                                                    s.nextLine();
-                                                    lf.setSpecies(newName);
-                                                    lf.setSymbol(newSymbol);
-                                                    world.addPair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                                    world.removePair(new AbstractMap.SimpleEntry<>(newName, 1));
-                                                    break;
-
-                                                case 'e':
-                                                case 'E':
-                                                    int newEnergy = s.nextInt();
-                                                    if (newEnergy < 0)
-                                                        System.out.println("Can't have negative energy!");
-                                                    else
-                                                        lf.setEnergy(newEnergy);
-                                                    break;
-
-                                                case 'd':
-                                                case 'D':
-                                                    int newRadius = s.nextInt();
-                                                    if (newRadius < 0)
-                                                        System.out.println("Can't have negative detection radius!");
-                                                    else
-                                                        lf.setDetectionRadius(newRadius);
-                                                    break;
-
-
-                                                default:
-                                                    System.out.println("Wrong input");
-                                                    break;
-
-                                            }
-                                        } catch (NumberFormatException e) {
-                                            System.out.println("Wrong number!");
-                                        }
-                                    }
-                                } catch (NumberFormatException e) {
-                                    System.out.println("Invalid id!");
-                                }
-                                exitFlag = true;
-                                break;
-                            case '2': //Remove
-
-                                exitFlag = true;
-                                break;
-                            case '3': //Add a new life form
-                                if (add()) {
-                                    System.out.println("Done!");
-                                } else {
-                                    System.out.println("Can't add an entity!");
-                                }
-                                exitFlag = true;
-                                break;
-
-                            default:
-
-                        }
-                    } while (!exitFlag);
-
-                    break;
-
-                case 's':
-                case 'S':
-                    exitFlag = false;
-                    do {
-                        System.out.println("1.	Run");
-                        System.out.println("2.	Pause/restart");
-                        System.out.println("3.	Reset");
-                        System.out.println("4.	Display map at each iteration: ON/OFF");
-                        ch = s.next().charAt(0);
-                        s.nextLine();
-                        switch (ch) {
-                            case '1': //Run
-                                System.out.println("How many times?");
-                                try {
-                                    int num = s.nextInt();
-
-                                    run(num);
-                                } catch (NumberFormatException e) {
-                                    System.out.println("Not a number!");
-                                }
-
-                                exitFlag = true;
-                                break;
-                            case '2': //Pause/restart TODO
-                                System.out.println("This option doesn't do anything... yet.");
-                                exitFlag = true;
-                                break;
-                            case '3': //Reset
-                                fromText(world.getCurrentConfig());
-                                exitFlag = true;
-                                break;
-                            case '4': //display map
-                                displayMap = !displayMap;
-                                System.out.println("Set map display to " + (displayMap ? "on" : "off"));
-                                exitFlag = true;
-                                break;
-                            default:
-
-                        }
-                    } while (!exitFlag);
-                    break;
-
-                case 'h':
-                case 'H':
-                    exitFlag = false;
-                    do {
-                        System.out.println("1.  Display info about application");
-                        System.out.println("2.  Display info about author");
-                        ch = s.next().charAt(0);
-                        s.nextLine();
-                        switch (ch) {
-                            case '1': //App TODO
-                                System.out.println("Artificial life simulator, ver  " + CURRENT_VERSION);
-
-                                exitFlag = true;
-                                break;
-                            case '2': //Author TODO
-                                System.out.println("Created by Ivan Syrovoiskii\n");
-                                System.out.println("Roses are red");
-                                System.out.println("Violets are blue");
-                                System.out.println("Still doing this project");
-                                System.out.println("Guess when it is due");
-
-                                exitFlag = true;
-                                break;
-                            default:
-
-                        }
-                    } while (!exitFlag);
-                    break;
-
-
-                default:
-
-            }
-        } while (ch != 'X');
-
-        s.close();
-    }
-
-    public static void main(String[] args) {
-        Application.launch(args);
-       /* do {
-            System.out.println();
-            System.out.print("Enter (A)dd entity, (D)isplay, (L)ist, (C)onfigure, (R)un or e(X)it > ");
-            ch = s.next().charAt(0);
-            s.nextLine();
-            switch (ch) {
-                case 'A':
-                case 'a':
-                    if(inter.add()) {
-                        System.out.println("Done!");
-                    } else {
-                        System.out.println("Can't add an entity!");
-                    }
-                    break;
-                case 'D':
-                case 'd':
-                    inter.display();
-                    break;
-                case 'L':
-                case 'l':
-                    System.out.println(inter.world.stats());
-                    inter.list();
-                    break;
-                case 'C':
-                case 'c':
-                    System.out.println("Enter a string:");
-                    String input = s.nextLine();
-                    if (inter.fromText(input)) {
-                        System.out.println("Done");
-                    } else {
-                        System.out.println("Something went wrong!");
-                    }
-                    break;
-                case 'R':
-                case 'r':
-                    System.out.println("How many times?");
-                    try {
-                        int num = s.nextInt();
-
-                        inter.run(num);
-                    } catch (NumberFormatException e){
-                        System.out.println("Not a number!");
-                    }
-                        break;
-                case 'X':
-                case 'x':
-                    ch = 'X';
-                    break;
-                default:
-                    continue;
-            }
-        } while (ch != 'X');
-        */
 
     }
 

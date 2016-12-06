@@ -1,9 +1,9 @@
 package uk.ac.reading.syrvanser.Entities;
 
 import javafx.scene.image.Image;
+import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 import uk.ac.reading.syrvanser.Logic.Direction;
-import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 
 import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
 
@@ -15,7 +15,7 @@ import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
 public abstract class AnEntity {
 
 
-
+    private static int entityCounter = 0;
     Image image;
     String species;
     char symbol;
@@ -23,9 +23,8 @@ public abstract class AnEntity {
     int targetY;
     int energy;
     int uniqueID;
-    private static int entityCounter = 0;
+    double imageOpacity = 1;
     private AWorld world;
-
 
     /**
      * Constructor
@@ -49,6 +48,13 @@ public abstract class AnEntity {
 
     }
 
+    public static int getEntityCounter() {
+        return entityCounter;
+    }
+
+    public static void resetEntityCounter() {
+        AnEntity.entityCounter = 0;
+    }
 
     /**
      * Default constructor
@@ -64,6 +70,13 @@ public abstract class AnEntity {
         this.world = null;
     }
     */
+    public double getImageOpacity() {
+        return imageOpacity;
+    }
+
+    public void setImageOpacity(double imageOpacity) {
+        this.imageOpacity = imageOpacity;
+    }
 
     public Image getImage() {
         return image;
@@ -81,12 +94,12 @@ public abstract class AnEntity {
         this.species = species;
     }
 
-    public void setSymbol(char symbol) {
-        this.symbol = symbol;
-    }
-
     public char getSymbol() {
         return symbol;
+    }
+
+    public void setSymbol(char symbol) {
+        this.symbol = symbol;
     }
 
     public int getTargetX() {
@@ -116,15 +129,6 @@ public abstract class AnEntity {
     public int getUniqueID() {
         return uniqueID;
     }
-
-    public static int getEntityCounter() {
-        return entityCounter;
-    }
-
-    public static void setEntityCounter(int entityCounter) {
-        AnEntity.entityCounter = entityCounter;
-    }
-
 
     public abstract String toText();
 
@@ -167,7 +171,7 @@ public abstract class AnEntity {
 
     public void display(GUIInterface i) {
 
-        i.show(image, targetX *IMGSIZE, targetY * IMGSIZE);							// just send details the entity to the interface
+        i.show(image, targetX * IMGSIZE, targetY * IMGSIZE, imageOpacity);                            // just send details the entity to the interface
     }
 
 /*

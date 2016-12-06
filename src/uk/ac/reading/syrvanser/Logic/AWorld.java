@@ -17,10 +17,13 @@ import static uk.ac.reading.syrvanser.Logic.Direction.*;
  */
 public class AWorld {
     private static Random rng = new Random();
-    public int maxEntities;
+    private int maxEntities;
     private int maxObstacles = 0;
     private int maxFood = 0;
     private int foodAmount;
+
+
+    private Set<AnEntity> objectsToRemove = new HashSet<>();
     private int lifeAmount;
     private int sizeX;
     private int sizeY;
@@ -42,6 +45,14 @@ public class AWorld {
         entities = new ArrayList<>();
         foodAmount = 0;
         lifeAmount = 0;
+    }
+
+    public Set<AnEntity> getObjectsToRemove() {
+        return objectsToRemove;
+    }
+
+    public void setObjectsToRemove(Set<AnEntity> objectsToRemove) {
+        this.objectsToRemove = objectsToRemove;
     }
 
     public int getMaxObstacles() {
@@ -93,7 +104,7 @@ public class AWorld {
 
     public void clear() {
         entities.clear();
-        AnEntity.setEntityCounter(0);
+        AnEntity.resetEntityCounter();
         foodAmount = 0;
         lifeAmount = 0;
 
@@ -216,11 +227,12 @@ public class AWorld {
      *
      * @param entity which eats food
      */
-    public void eatFood(AnEntity entity) {
+    private void eatFood(AnEntity entity) {
         int x = entity.getTargetX();
         int y = entity.getTargetY();
         entities.stream().filter(e -> e != null && checkFood(x, y) && e.getTargetX() == x && e.getTargetY() == y).forEach(e -> {
             entity.setEnergy(entity.getEnergy() + e.getEnergy());
+            objectsToRemove.add(e);
             entities.set(entities.indexOf(e), null);
             foodAmount--;
         });
@@ -333,7 +345,10 @@ public class AWorld {
                 }
 
                 eatFood(e);
+
+
                 if (e.getEnergy() <= 0) {
+                    objectsToRemove.add(e);
                     entities.set(entities.indexOf(e), null);
                     lifeAmount--;
                 }
@@ -348,7 +363,7 @@ public class AWorld {
         lifeAmount--;
     }
 
-    public void addPair(Map.Entry<String, Integer> pair) {
+    private void addPair(Map.Entry<String, Integer> pair) {
         if (pair.getKey().equals("Obstacle") || pair.getKey().equals("Food"))
             return;
         for (Map.Entry<String, Integer> e :
@@ -364,6 +379,7 @@ public class AWorld {
     public void show(GUIInterface i) {
         //System.out.println("showing..." + entities.size());
         for (AnEntity entity : entities) entity.display(i);
+        for (AnEntity entity : objectsToRemove) entity.display(i);
         // loop through array of all robots, displaying each
     }
 
