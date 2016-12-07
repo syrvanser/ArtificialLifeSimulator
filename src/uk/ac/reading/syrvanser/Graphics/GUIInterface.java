@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -33,20 +34,21 @@ import java.util.stream.Collectors;
  * @version 9
  */
 public class GUIInterface extends Application {
-    private static final long UPDATERATE = 1000000000; //1 sec
-    private static final String CURRENT_VERSION = "0.7";
+    //private static final String CURRENT_VERSION = "0.7";
     public static int IMGSIZE = 512 / 10;
+    private static long UPDATERATE = 1000000000; //1 sec
     private boolean isRunning = false;
     private AWorld world = new AWorld();
     private Properties currentProperties = new Properties();
     private File propFile;
     private File lastConf;
     private Stage stagePrimary;
-    private Canvas canvas;
-    private BorderPane bp;
-    private Group root;
     private GraphicsContext gc;
     private FileChooser propFC = new FileChooser();
+
+    private static boolean isNumeric(String str) {
+        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+    }
 
     private MenuBar setMenu() {
         MenuBar menuBar = new MenuBar();
@@ -220,12 +222,15 @@ public class GUIInterface extends Application {
                     dialog.setHeaderText("Choose what you would like to edit: ");
 
                     ButtonType done = new ButtonType("Done", ButtonBar.ButtonData.OK_DONE);
+
                     dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
+
+                    Node doneButton = dialog.getDialogPane().lookupButton(done);
 
                     GridPane grid = new GridPane();
                     grid.setHgap(10);
                     grid.setVgap(10);
-                    grid.setPadding(new Insets(20, 150, 10, 10));
+                    grid.setPadding(new Insets(20, 5, 10, 5));
 
                     TextField name = new TextField();
                     name.setText(e.getSpecies());
@@ -238,25 +243,80 @@ public class GUIInterface extends Application {
 
                     TextField d = new TextField();
                     d.setText(e.getDetectionRadius() + "");
-
+                    Label xError = new Label("Must be a number less between 0 and " + (world.getSizeX() - 1));
+                    xError.setVisible(false);
+                    xError.setStyle(" -fx-background-radius: 25px; -fx-background-color: coral; -fx-padding: 4px;");
+                    Label yError = new Label("Must be a number less between 0 and " + (world.getSizeY() - 1));
+                    yError.setVisible(false);
+                    yError.setStyle(" -fx-background-radius: 25px; -fx-background-color: coral; -fx-padding: 4px;");
+                    Label dError = new Label("Must be a number less between 0 and 100");
+                    dError.setVisible(false);
+                    dError.setStyle(" -fx-background-radius: 25px; -fx-background-color: coral; -fx-padding: 4px;");
+                    Label eError = new Label("Must be a number less between 0 and 10000");
+                    eError.setVisible(false);
+                    eError.setStyle(" -fx-background-radius: 25px; -fx-background-color: coral; -fx-padding: 4px;");
 
                     TextField en = new TextField();
                     en.setText(e.getEnergy() + "");
+                    x.textProperty().addListener((obs, oldText, newText) -> {
+                        if (!(isNumeric(newText) && Integer.parseInt(newText) >= 0 && Integer.parseInt(newText) < world.getSizeX())) {
+                            doneButton.setDisable(true);
+                            xError.setVisible(true);
+                        } else {
+                            doneButton.setDisable(false);
+                            xError.setVisible(false);
+                        }
+                    });
 
+                    y.textProperty().addListener((obs, oldText, newText) -> {
+
+                        if (!(isNumeric(newText) && Integer.parseInt(newText) >= 0 && Integer.parseInt(newText) < world.getSizeY())) {
+                            doneButton.setDisable(true);
+                            yError.setVisible(true);
+                        } else {
+                            doneButton.setDisable(false);
+                            yError.setVisible(false);
+                        }
+                    });
+
+                    d.textProperty().addListener((obs, oldText, newText) -> {
+                        if (!(isNumeric(newText) && Integer.parseInt(newText) >= 0 && Integer.parseInt(newText) < 100)) {
+                            doneButton.setDisable(true);
+                            dError.setVisible(true);
+                        } else {
+                            doneButton.setDisable(false);
+                            dError.setVisible(false);
+                        }
+                    });
+
+                    en.textProperty().addListener((obs, oldText, newText) -> {
+                        if (!(isNumeric(newText) && Integer.parseInt(newText) >= 0 && Integer.parseInt(newText) < 10000)) {
+                            doneButton.setDisable(true);
+                            eError.setVisible(true);
+                        } else {
+                            doneButton.setDisable(false);
+                            eError.setVisible(false);
+                        }
+
+                    });
 
                     grid.add(new Label("Name:"), 0, 0);
                     grid.add(name, 1, 0);
                     grid.add(new Label("x:"), 0, 1);
                     grid.add(x, 1, 1);
+                    grid.add(xError, 2, 1);
 
                     grid.add(new Label("y:"), 0, 2);
                     grid.add(y, 1, 2);
+                    grid.add(yError, 2, 2);
 
                     grid.add(new Label("Detection range:"), 0, 3);
                     grid.add(d, 1, 3);
+                    grid.add(dError, 2, 3);
 
                     grid.add(new Label("Energy:"), 0, 4);
                     grid.add(en, 1, 4);
+                    grid.add(eError, 2, 4);
 
                     dialog.getDialogPane().setContent(grid);
 
@@ -271,30 +331,32 @@ public class GUIInterface extends Application {
                         }
                         return null;
                     });
-
-                    Optional<Result> result = dialog.showAndWait();
-                    result.ifPresent(res -> {
-                        if (world.getEntity(res.x, res.y) == null && world.canMove(res.x, res.y) && res.r > 0 && res.e >= 0) {
-                            e.setSpecies(res.n);
-                            e.setTargetX(res.x);
-                            e.setTargetY(res.y);
-                            e.setCurrentX(res.x * IMGSIZE);
-                            e.setCurrentY(res.y * IMGSIZE);
-                            e.setDetectionRadius(res.r);
-                            e.setEnergy(res.e);
-                        } else {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setTitle("Error");
-                            alert.setHeaderText("Wrong parameters!");
-                            alert.setContentText("Check parameters and try again!");
-                            alert.showAndWait();
-                        }
-                    });
-
+                    final boolean[] flag = {true};
+                    do {
+                        Optional<Result> result = dialog.showAndWait();
+                        result.ifPresent(res -> {
+                            if (world.getEntity(res.x, res.y) == null) {
+                                e.setSpecies(res.n);
+                                e.setTargetX(res.x);
+                                e.setTargetY(res.y);
+                                e.setCurrentX(res.x * IMGSIZE);
+                                e.setCurrentY(res.y * IMGSIZE);
+                                e.setDetectionRadius(res.r);
+                                e.setEnergy(res.e);
+                                flag[0] = false;
+                            } else {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Error");
+                                alert.setHeaderText("This position is occupied!");
+                                alert.setContentText("Try again!");
+                                alert.showAndWait();
+                                flag[0] = true;
+                            }
+                        });
+                    } while (flag[0]);
                 });
             }
         });
-
 
 
         MenuItem mRemove = new MenuItem("Remove");
@@ -354,7 +416,6 @@ public class GUIInterface extends Application {
         return menuBar;
 
     }
-
 
 
     private boolean add(String s, char c) {
@@ -425,7 +486,6 @@ public class GUIInterface extends Application {
 
         return true;
     }
-
 
 
     private boolean fromFile(Properties prop) {
@@ -554,17 +614,17 @@ public class GUIInterface extends Application {
         stagePrimary = primaryStage;
         stagePrimary.setResizable(false);
         primaryStage.setTitle("Life form sim");
-        bp = new BorderPane();
+        BorderPane bp = new BorderPane();
         bp.setPadding(new Insets(0, 0, 0, 0));
 
         bp.setTop(setMenu());
 
-        root = new Group();
+        Group root = new Group();
 
         //  System.out.println(currentProperties.getProperty("ant"));
         fromFile(currentProperties);
         System.out.println(world.getEntities());
-        canvas = new Canvas(512, 512);
+        Canvas canvas = new Canvas(512, 512);
         root.getChildren().add(canvas);
 
         gc = canvas.getGraphicsContext2D();

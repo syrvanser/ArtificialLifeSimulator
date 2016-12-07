@@ -65,28 +65,12 @@ public abstract class AnEntity {
         this.imageOpacity = imageOpacity;
     }
 
-    public Image getImage() {
-        return image;
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
-    }
-
     public String getSpecies() {
         return species;
     }
 
     public void setSpecies(String species) {
         this.species = species;
-    }
-
-    public char getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(char symbol) {
-        this.symbol = symbol;
     }
 
     public int getTargetX() {
@@ -111,10 +95,6 @@ public abstract class AnEntity {
 
     public void setEnergy(int energy) {
         this.energy = energy;
-    }
-
-    public int getUniqueID() {
-        return uniqueID;
     }
 
     public abstract String toText();

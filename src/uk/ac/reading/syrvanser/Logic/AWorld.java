@@ -182,7 +182,7 @@ public class AWorld {
      * @param y y position
      * @return true if can move, false if can't
      */
-    public boolean canMove(int x, int y) {
+    private boolean canMove(int x, int y) {
         if (x < 0 || y < 0 || x >= sizeX || y >= sizeY)
             return false;
         AnEntity tmp = getEntity(x, y);

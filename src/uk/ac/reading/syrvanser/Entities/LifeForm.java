@@ -23,16 +23,9 @@ public class LifeForm extends AnEntity {
         this.image = new Image("/uk/ac/reading/syrvanser/img/doge.png");
     }
 
-    public int getCurrentX() {
-        return currentX;
-    }
 
     public void setCurrentX(int currentX) {
         this.currentX = currentX;
-    }
-
-    public int getCurrentY() {
-        return currentY;
     }
 
     public void setCurrentY(int currentY) {
