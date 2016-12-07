@@ -47,9 +47,13 @@ public class GUIInterface extends Application {
     private GraphicsContext gc;
     private FileChooser propFC = new FileChooser();
     private boolean useSmoothAnimations = true;
-
+    
+    public static void main(String[] args) {
+		Application.launch(args);
+	}
+    
     private static boolean isNumeric(String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+        return str.matches("^-?\\d+$");  //match a number with optional '-' and decimal.
     }
 
     private MenuBar setMenu() {
