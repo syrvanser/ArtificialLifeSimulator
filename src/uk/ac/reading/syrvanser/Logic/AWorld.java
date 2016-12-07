@@ -226,28 +226,27 @@ public class AWorld {
      */
     public void run() {
         for (AnEntity ent : entities) {
-            if (ent != null && !(ent instanceof Food) && !(ent instanceof Obstacle)) {
-                LifeForm e = (LifeForm) ent;
-                int energy = e.getEnergy();
-
-                e.setEnergy(energy - 1); //lose 1 energy when moving
+            if (ent != null && ent instanceof LifeForm) {
+                LifeForm currentEntity = (LifeForm) ent;
+                int energy = currentEntity.getEnergy();
+                currentEntity.setEnergy(energy - 1); //lose 1 energy when moving
                 List<Map.Entry<Direction, Integer>> directions = new ArrayList<>();
 
                 //Add direction to the list if there's food in it
-                if (canMove(e.getTargetX(), e.getTargetY() - 1)) {
-                    int r = e.smellFood(N, e.getDetectionRadius());
+                if (canMove(currentEntity.getTargetX(), currentEntity.getTargetY() - 1)) {
+                    int r = currentEntity.smellFood(N, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(N, r));
                 }
-                if (canMove(e.getTargetX(), e.getTargetY() + 1)) {
-                    int r = e.smellFood(S, e.getDetectionRadius());
+                if (canMove(currentEntity.getTargetX(), currentEntity.getTargetY() + 1)) {
+                    int r = currentEntity.smellFood(S, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(S, r));
                 }
-                if (canMove(e.getTargetX() + 1, e.getTargetY())) {
-                    int r = e.smellFood(E, e.getDetectionRadius());
+                if (canMove(currentEntity.getTargetX() + 1, currentEntity.getTargetY())) {
+                    int r = currentEntity.smellFood(E, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(E, r));
                 }
-                if (canMove(e.getTargetX() - 1, e.getTargetY())) {
-                    int r = e.smellFood(W, e.getDetectionRadius());
+                if (canMove(currentEntity.getTargetX() - 1, currentEntity.getTargetY())) {
+                    int r = currentEntity.smellFood(W, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(W, r));
                 }
 
@@ -261,8 +260,8 @@ public class AWorld {
                 System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY())); */
 
                     Direction d = Direction.getRandomDirection(); //Pick a random direction
-                    int randomX = e.getTargetX();
-                    int randomY = e.getTargetY();
+                    int randomX = currentEntity.getTargetX();
+                    int randomY = currentEntity.getTargetY();
                     switch (d) {
                         case N:
                             randomY--;
@@ -279,8 +278,8 @@ public class AWorld {
                     }
 
                     if (canMove(randomX, randomY)) {
-                        e.setTargetX(randomX);
-                        e.setTargetY(randomY);
+                        currentEntity.setTargetX(randomX);
+                        currentEntity.setTargetY(randomY);
                     }
                 } else { //if not empty pick a random direction from the list
                    /* System.out.println("DEBUG: food");
@@ -307,26 +306,26 @@ public class AWorld {
                     Direction d = dir.get(index);
                     switch (d) {
                         case N:
-                            e.setTargetY(e.getTargetY() - 1);
+                            currentEntity.setTargetY(currentEntity.getTargetY() - 1);
                             break;
                         case E:
-                            e.setTargetX(e.getTargetX() + 1);
+                            currentEntity.setTargetX(currentEntity.getTargetX() + 1);
                             break;
                         case S:
-                            e.setTargetY(e.getTargetY() + 1);
+                            currentEntity.setTargetY(currentEntity.getTargetY() + 1);
                             break;
                         case W:
-                            e.setTargetX(e.getTargetX() - 1);
+                            currentEntity.setTargetX(currentEntity.getTargetX() - 1);
                             break;
                     }
                 }
 
-                eatFood(e);
+                eatFood(currentEntity);
 
 
-                if (e.getEnergy() <= 0) {
-                    objectsToRemove.add(e);
-                    entities.set(entities.indexOf(e), null);
+                if (currentEntity.getEnergy() <= 0) {
+                    objectsToRemove.add(currentEntity);
+                    entities.set(entities.indexOf(currentEntity), null);
                     lifeAmount--;
                 }
             }

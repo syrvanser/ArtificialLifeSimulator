@@ -125,13 +125,13 @@ public abstract class AnEntity {
                     xVal--;
                     break;
             }
-            if (this.world.checkFood(xVal, yVal))
+            AnEntity entity = world.getEntity(xVal, yVal);
+            if (entity instanceof Food)
                 return i;
-            if(this.world.getEntity(xVal, yVal) == null)
+            if (entity == null)
                 continue;
-            if(this.world.getEntity(xVal, yVal) instanceof LifeForm || this.world.getEntity(xVal, yVal) instanceof Obstacle)
+            if (entity instanceof LifeForm || entity instanceof Obstacle)
                 return -1;
-
         }
         return -1;
     }

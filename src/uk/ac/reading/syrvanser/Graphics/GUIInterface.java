@@ -35,7 +35,8 @@ import java.util.stream.Collectors;
  */
 public class GUIInterface extends Application {
     //private static final String CURRENT_VERSION = "0.7";
-    public static int IMGSIZE = 512 / 10;
+    private static final int SCREENSIZE = 512;
+    public static int IMGSIZE = SCREENSIZE / 10;
     private static long UPDATERATE = 1000000000; //1 sec
     private boolean isRunning = false;
     private AWorld world = new AWorld();
@@ -45,6 +46,7 @@ public class GUIInterface extends Application {
     private Stage stagePrimary;
     private GraphicsContext gc;
     private FileChooser propFC = new FileChooser();
+    private boolean useSmoothAnimations = true;
 
     private static boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
@@ -450,7 +452,7 @@ public class GUIInterface extends Application {
             world.clear();
             world.clearConfig();
             world = new AWorld(x, y, x * y);
-            IMGSIZE = world.getSizeX() > world.getSizeY() ? (512 / world.getSizeX()) : (512 / world.getSizeY());
+            IMGSIZE = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
             int foodNum = Integer.parseInt(array[2]);
             int obsNum = Integer.parseInt(array[3]);
             int foodAmount = world.getSizeY() * world.getSizeX() * foodNum / 100;
@@ -495,7 +497,7 @@ public class GUIInterface extends Application {
             world.clear();
             world.clearConfig();
             world = new AWorld(loadedWidth, loadedHeight, loadedHeight * loadedWidth);
-            IMGSIZE = world.getSizeX() > world.getSizeY() ? (512 / world.getSizeX()) : (512 / world.getSizeY());
+            IMGSIZE = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
             int loadedObstacles = Integer.parseInt(prop.getProperty("obs"));
             int loadedFood = Integer.parseInt(prop.getProperty("food"));
             Set<String> keys = prop.stringPropertyNames();
@@ -524,12 +526,7 @@ public class GUIInterface extends Application {
 
             }
 
-            //    canvas = new Canvas(IMGSIZE * world.getSizeX(), IMGSIZE * world.getSizeX());
-            //     root.getChildren().add(canvas);
 
-            //    gc = canvas.getGraphicsContext2D();
-
-            //    bp.setCenter(root);
             save(lastConf);
             return true;
 
@@ -624,42 +621,74 @@ public class GUIInterface extends Application {
         //  System.out.println(currentProperties.getProperty("ant"));
         fromFile(currentProperties);
         System.out.println(world.getEntities());
-        Canvas canvas = new Canvas(512, 512);
+        Canvas canvas = new Canvas(SCREENSIZE, SCREENSIZE);
         root.getChildren().add(canvas);
 
         gc = canvas.getGraphicsContext2D();
 
         bp.setCenter(root);
 
-        Button pause = new Button("Pause");
-        Button play = new Button("Play");
-        Button reset = new Button("Reset");
-        pause.setOnAction(event -> isRunning = false);
-        play.setOnAction(event -> isRunning = true);
-        reset.setOnAction(event -> fromText(world.getCurrentConfig()));
+        CheckBox cbSmoothAimations = new CheckBox("Smooth animations");
+        cbSmoothAimations.setSelected(true);
 
-        HBox topBox = new HBox();
-        topBox.getChildren().addAll(play, pause, reset);
-        bp.setBottom(topBox);
-        HBox.setMargin(play, new Insets(10, 10, 10, 10));
-        HBox.setMargin(pause, new Insets(10, 10, 10, 10));
-        HBox.setMargin(reset, new Insets(10, 10, 10, 10));
+        Slider sldSpeed = new Slider(1, 10, 3);
+
+        sldSpeed.setShowTickLabels(true);
+        sldSpeed.setShowTickMarks(true);
+
+        sldSpeed.setBlockIncrement(1);
+        Label lblSpeed = new Label("Speed:");
+        Button btnPause = new Button("Pause");
+        Button btnPlay = new Button("Play");
+        Button btnReset = new Button("Reset");
+        btnPause.setOnAction(event -> isRunning = false);
+        btnPlay.setOnAction(event -> isRunning = true);
+        btnReset.setOnAction(event -> fromText(world.getCurrentConfig()));
+        sldSpeed.valueProperty().addListener((observable, oldValue, newValue) -> {
+            UPDATERATE = (long) (UPDATERATE * Math.pow(1.2, oldValue.intValue() - newValue.intValue()));
+            System.out.println(UPDATERATE);
+        });
+
+        cbSmoothAimations.selectedProperty().addListener((observable, oldValue, newValue) -> useSmoothAnimations = newValue);
+
+        HBox bottomBox = new HBox();
+        bottomBox.getChildren().addAll(btnPlay, btnPause, btnReset, lblSpeed, sldSpeed, cbSmoothAimations);
+        bp.setBottom(bottomBox);
+        HBox.setMargin(btnPlay, new Insets(10, 10, 10, 10));
+        HBox.setMargin(btnPause, new Insets(10, 10, 10, 10));
+        HBox.setMargin(btnReset, new Insets(10, 10, 10, 10));
+        HBox.setMargin(sldSpeed, new Insets(10, 10, 10, 10));
+        HBox.setMargin(lblSpeed, new Insets(10, 10, 10, 10));
+        HBox.setMargin(cbSmoothAimations, new Insets(10, 10, 10, 10));
+
         world.show(this);
         // fromText("20 20 20 20 ant 5");
         AnimationTimer timer = new AnimationTimer() {
-            int i = 1;
+            int i = 0;
             private long lastUpdate = 0;
 
             public void handle(long currentNanoTime) {
                 if (isRunning) {
 
-                    if (currentNanoTime - lastUpdate >= (UPDATERATE / IMGSIZE) * i) {
+                    if (useSmoothAnimations && currentNanoTime - lastUpdate >= (UPDATERATE / (IMGSIZE)) * i) {
                         i++;
+                        double fadeRate = 1.5 / (double) IMGSIZE;
                         world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition());
-                        world.getObjectsToRemove().forEach(e -> e.setImageOpacity(e.getImageOpacity() >= 0.1 ? e.getImageOpacity() - 0.05 : 0));
+                        world.getObjectsToRemove().forEach(e -> {
+                            double opacity = e.getImageOpacity();
+                            e.setImageOpacity(opacity >= 0.1 ? opacity - fadeRate : 0);
+                        });
                         world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
+                        System.out.println(i);
                     }
-                    if (currentNanoTime - lastUpdate >= UPDATERATE) {
+                    if (currentNanoTime - lastUpdate > UPDATERATE) {
+                        if (!useSmoothAnimations) {
+                            world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> {
+                                ((LifeForm) e).setCurrentX(e.getTargetX() * IMGSIZE);
+                                ((LifeForm) e).setCurrentY(e.getTargetY() * IMGSIZE);
+                                world.getObjectsToRemove().clear();
+                            });
+                        }
                         i = 0;
                         world.run();
                         lastUpdate = currentNanoTime;

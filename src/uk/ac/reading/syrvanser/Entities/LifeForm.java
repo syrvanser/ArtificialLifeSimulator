@@ -17,7 +17,7 @@ public class LifeForm extends AnEntity {
     private int detectionRadius = 5;
 
     public LifeForm(String species, char symbol, int hPosition, int vPosition, AWorld world) {
-        super(species, symbol, hPosition, vPosition, 10, world);
+        super(species, symbol, hPosition, vPosition, 100000, world);
         this.currentX = targetX * IMGSIZE;
         this.currentY = targetY * IMGSIZE;
         this.image = new Image("/uk/ac/reading/syrvanser/img/doge.png");
@@ -45,9 +45,9 @@ public class LifeForm extends AnEntity {
         int realX = targetX * IMGSIZE;
         int realY = targetY * IMGSIZE;
         if (currentX != realX)
-            currentX += (realX - currentX) / Math.abs(realX - currentX);
+            currentX += (realX > currentX ? 1 : -1);
         if (currentY != realY)
-            currentY += (realY - currentY) / Math.abs(realY- currentY);
+            currentY += (realY > currentY ? 1 : -1);
     }
 
     @Override
