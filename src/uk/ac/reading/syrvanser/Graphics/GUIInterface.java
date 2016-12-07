@@ -669,8 +669,7 @@ public class GUIInterface extends Application {
 
             public void handle(long currentNanoTime) {
                 if (isRunning) {
-
-                    if (useSmoothAnimations && currentNanoTime - lastUpdate >= (UPDATERATE / (IMGSIZE)) * i) {
+                    if (useSmoothAnimations && currentNanoTime - lastUpdate >= (UPDATERATE / IMGSIZE) * i) {
                         i++;
                         double fadeRate = 1.5 / (double) IMGSIZE;
                         world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition());
@@ -679,16 +678,17 @@ public class GUIInterface extends Application {
                             e.setImageOpacity(opacity >= 0.1 ? opacity - fadeRate : 0);
                         });
                         world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
-                        System.out.println(i);
+                        System.out.println(i + " " + (currentNanoTime - lastUpdate) + " r:" + (UPDATERATE / IMGSIZE) * (i - 1) + "-" + (UPDATERATE / IMGSIZE) * (i));
                     }
                     if (currentNanoTime - lastUpdate > UPDATERATE) {
-                        if (!useSmoothAnimations) {
+
                             world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> {
                                 ((LifeForm) e).setCurrentX(e.getTargetX() * IMGSIZE);
                                 ((LifeForm) e).setCurrentY(e.getTargetY() * IMGSIZE);
-                                world.getObjectsToRemove().clear();
+                                if (!useSmoothAnimations)
+                                    world.getObjectsToRemove().clear();
                             });
-                        }
+
                         i = 0;
                         world.run();
                         lastUpdate = currentNanoTime;

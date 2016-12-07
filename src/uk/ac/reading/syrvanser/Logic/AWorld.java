@@ -207,7 +207,7 @@ public class AWorld {
     private void eatFood(AnEntity entity) {
         int x = entity.getTargetX();
         int y = entity.getTargetY();
-        entities.stream().filter(e -> e != null && checkFood(x, y) && e.getTargetX() == x && e.getTargetY() == y).forEach(e -> {
+        entities.stream().filter(e -> e != null && e instanceof Food && e.getTargetX() == x && e.getTargetY() == y).forEach(e -> {
             entity.setEnergy(entity.getEnergy() + e.getEnergy());
             objectsToRemove.add(e);
             entities.set(entities.indexOf(e), null);
@@ -233,22 +233,18 @@ public class AWorld {
                 List<Map.Entry<Direction, Integer>> directions = new ArrayList<>();
 
                 //Add direction to the list if there's food in it
-                if (canMove(currentEntity.getTargetX(), currentEntity.getTargetY() - 1)) {
+
                     int r = currentEntity.smellFood(N, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(N, r));
-                }
-                if (canMove(currentEntity.getTargetX(), currentEntity.getTargetY() + 1)) {
-                    int r = currentEntity.smellFood(S, currentEntity.getDetectionRadius());
+
+                r = currentEntity.smellFood(S, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(S, r));
-                }
-                if (canMove(currentEntity.getTargetX() + 1, currentEntity.getTargetY())) {
-                    int r = currentEntity.smellFood(E, currentEntity.getDetectionRadius());
+
+                r = currentEntity.smellFood(E, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(E, r));
-                }
-                if (canMove(currentEntity.getTargetX() - 1, currentEntity.getTargetY())) {
-                    int r = currentEntity.smellFood(W, currentEntity.getDetectionRadius());
+
+                r = currentEntity.smellFood(W, currentEntity.getDetectionRadius());
                     if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(W, r));
-                }
 
                 if (directions.isEmpty()) { //if no food around move to the random direction
 
