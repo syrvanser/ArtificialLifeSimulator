@@ -35,9 +35,16 @@ import java.util.stream.Collectors;
  */
 public class GUIInterface extends Application {
     //private static final String CURRENT_VERSION = "0.7";
-    private static final int SCREENSIZE = 512;
-    public static int IMGSIZE = SCREENSIZE / 10;
-    private static long UPDATERATE = 1000000000; //1 sec
+
+    private static final int SCREENSIZE = 500;
+    private static final int fps = 60;
+    public static int imageSize = 50;
+    private long simulationSpeed = 1000000000; //1 sec
+    //  private static double delta = fps;
+    private double numOfUpdates = (fps * simulationSpeed) / (1000000000) + 1;
+    private double timeStep = 1000000000 / fps;
+
+    //private static  long updateConst = 1000000000/(delta);
     private boolean isRunning = false;
     private AWorld world = new AWorld();
     private Properties currentProperties = new Properties();
@@ -47,11 +54,12 @@ public class GUIInterface extends Application {
     private GraphicsContext gc;
     private FileChooser propFC = new FileChooser();
     private boolean useSmoothAnimations = true;
-    
+    private Canvas canvas;
+
     public static void main(String[] args) {
-		Application.launch(args);
-	}
-    
+        Application.launch(args);
+    }
+
     private static boolean isNumeric(String str) {
         return str.matches("^-?\\d+$");  //match a number with optional '-' and decimal.
     }
@@ -325,30 +333,29 @@ public class GUIInterface extends Application {
                     grid.add(eError, 2, 4);
 
                     dialog.getDialogPane().setContent(grid);
-
+                    final boolean[] flag = {false};
 
                     dialog.setResultConverter(dialogButton -> {
                         if (dialogButton == done) {
-                            try {
-                                return new Result(name.getText(), Integer.parseInt(x.getText()), Integer.parseInt(y.getText()), Integer.parseInt(d.getText()), Integer.parseInt(en.getText()));
-                            } catch (NumberFormatException exp) {
-                                return null;
-                            }
+                            return new Result(name.getText(), Integer.parseInt(x.getText()), Integer.parseInt(y.getText()), Integer.parseInt(d.getText()), Integer.parseInt(en.getText()));
                         }
                         return null;
                     });
-                    final boolean[] flag = {true};
+
                     do {
                         Optional<Result> result = dialog.showAndWait();
                         result.ifPresent(res -> {
-                            if (world.getEntity(res.x, res.y) == null) {
+                            AnEntity possibleEntity = world.getEntity(res.x, res.y);
+                            if (possibleEntity == null) {
                                 e.setSpecies(res.n);
                                 e.setTargetX(res.x);
                                 e.setTargetY(res.y);
-                                e.setCurrentX(res.x * IMGSIZE);
-                                e.setCurrentY(res.y * IMGSIZE);
+                                e.setCurrentX(res.x * imageSize);
+                                e.setCurrentY(res.y * imageSize);
                                 e.setDetectionRadius(res.r);
                                 e.setEnergy(res.e);
+                                flag[0] = false;
+                            } else if (possibleEntity == e) {
                                 flag[0] = false;
                             } else {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -358,10 +365,13 @@ public class GUIInterface extends Application {
                                 alert.showAndWait();
                                 flag[0] = true;
                             }
+
                         });
                     } while (flag[0]);
+
                 });
             }
+            draw();
         });
 
 
@@ -390,7 +400,7 @@ public class GUIInterface extends Application {
 
                 });
             }
-
+            draw();
 
         });
 
@@ -404,6 +414,7 @@ public class GUIInterface extends Application {
             dialog.setHeaderText("Please enter the new life form's name ");
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(enteredName -> add(enteredName, enteredName.charAt(0)));
+            draw();
         });
 
         mEdit.getItems().addAll(mModify, mRemove, mAdd);
@@ -454,9 +465,11 @@ public class GUIInterface extends Application {
             int x = Integer.parseInt(array[0]);
             int y = Integer.parseInt(array[1]);
             world.clear();
-            world.clearConfig();
+            currentProperties = new Properties();
             world = new AWorld(x, y, x * y);
-            IMGSIZE = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
+            imageSize = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
+            canvas.setHeight(imageSize * y);
+            canvas.setWidth(imageSize * x);
             int foodNum = Integer.parseInt(array[2]);
             int obsNum = Integer.parseInt(array[3]);
             int foodAmount = world.getSizeY() * world.getSizeX() * foodNum / 100;
@@ -483,13 +496,14 @@ public class GUIInterface extends Application {
 
                 counter += 2;
             }
-
+            isRunning = false;
             save(lastConf);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return false;
         }
-
+        draw();
         return true;
     }
 
@@ -500,8 +514,11 @@ public class GUIInterface extends Application {
             int loadedHeight = Integer.parseInt(prop.getProperty("height"));
             world.clear();
             world.clearConfig();
+            currentProperties = new Properties();
             world = new AWorld(loadedWidth, loadedHeight, loadedHeight * loadedWidth);
-            IMGSIZE = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
+            imageSize = world.getSizeX() > world.getSizeY() ? (SCREENSIZE / world.getSizeX()) : (SCREENSIZE / world.getSizeY());
+            canvas.setHeight(imageSize * loadedHeight);
+            canvas.setWidth(imageSize * loadedWidth);
             int loadedObstacles = Integer.parseInt(prop.getProperty("obs"));
             int loadedFood = Integer.parseInt(prop.getProperty("food"));
             Set<String> keys = prop.stringPropertyNames();
@@ -530,8 +547,9 @@ public class GUIInterface extends Application {
 
             }
 
-
+            isRunning = false;
             save(lastConf);
+            draw();
             return true;
 
 
@@ -568,7 +586,7 @@ public class GUIInterface extends Application {
         if (file != null) {
             try {
                 PrintWriter writer = new PrintWriter(lastConf);
-                writer.print("");
+                writer.print("Hello");
                 writer.close();
                 output = new FileOutputStream(lastConf);
                 currentProperties.store(output, "ALS config file");
@@ -576,7 +594,7 @@ public class GUIInterface extends Application {
 
                 if (file != lastConf) {
                     writer = new PrintWriter(file);
-                    writer.print("");
+                    writer.print("Hello");
                     writer.close();
 
                     output = new FileOutputStream(file);
@@ -597,21 +615,21 @@ public class GUIInterface extends Application {
 
     public void show(Image image, int x, int y, double opacity) {
         gc.setGlobalAlpha(opacity);
-        gc.drawImage(image, x, y, IMGSIZE, IMGSIZE);
+        gc.drawImage(image, x, y, imageSize, imageSize);
     }
 
     private void draw() {
         gc.setGlobalAlpha(1);
-        gc.clearRect(0, 0, world.getSizeX() * IMGSIZE, world.getSizeY() * IMGSIZE);
+        gc.clearRect(0, 0, world.getSizeX() * imageSize, world.getSizeY() * imageSize);
         gc.setFill(Color.LIGHTGREY);
-        gc.fillRect(0, 0, world.getSizeX() * IMGSIZE, world.getSizeY() * IMGSIZE);
+        gc.fillRect(0, 0, world.getSizeX() * imageSize, world.getSizeY() * imageSize);
         world.show(this);
     }
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
+        canvas = new Canvas(SCREENSIZE, SCREENSIZE);
         stagePrimary = primaryStage;
         stagePrimary.setResizable(false);
         primaryStage.setTitle("Life form sim");
@@ -625,7 +643,8 @@ public class GUIInterface extends Application {
         //  System.out.println(currentProperties.getProperty("ant"));
         fromFile(currentProperties);
         System.out.println(world.getEntities());
-        Canvas canvas = new Canvas(SCREENSIZE, SCREENSIZE);
+
+
         root.getChildren().add(canvas);
 
         gc = canvas.getGraphicsContext2D();
@@ -649,8 +668,9 @@ public class GUIInterface extends Application {
         btnPlay.setOnAction(event -> isRunning = true);
         btnReset.setOnAction(event -> fromText(world.getCurrentConfig()));
         sldSpeed.valueProperty().addListener((observable, oldValue, newValue) -> {
-            UPDATERATE = (long) (UPDATERATE * Math.pow(1.2, oldValue.intValue() - newValue.intValue()));
-            System.out.println(UPDATERATE);
+            simulationSpeed = (long) (simulationSpeed * Math.pow(1.3, oldValue.intValue() - newValue.intValue()));
+            numOfUpdates = (fps * simulationSpeed) / (1000000000) + 1;
+            System.out.println(simulationSpeed);
         });
 
         cbSmoothAimations.selectedProperty().addListener((observable, oldValue, newValue) -> useSmoothAnimations = newValue);
@@ -665,40 +685,74 @@ public class GUIInterface extends Application {
         HBox.setMargin(lblSpeed, new Insets(10, 10, 10, 10));
         HBox.setMargin(cbSmoothAimations, new Insets(10, 10, 10, 10));
 
-        world.show(this);
+        //world.show(this);
+        draw();
         // fromText("20 20 20 20 ant 5");
         AnimationTimer timer = new AnimationTimer() {
-            int i = 0;
-            private long lastUpdate = 0;
+
+            long lastUpdate = 0;
+            int timesExecuted = 0;
 
             public void handle(long currentNanoTime) {
+
                 if (isRunning) {
-                    if (useSmoothAnimations && currentNanoTime - lastUpdate >= (UPDATERATE / IMGSIZE) * i) {
-                        i++;
-                        double fadeRate = 1.5 / (double) IMGSIZE;
-                        world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition());
+
+
+                  /*  if (useSmoothAnimations && currentNanoTime - lastUpdate > (updateConst) * i) {
+
+                        double fadeRate = 1.5 / (double) imageSize;
+                        world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition(delta-i));
                         world.getObjectsToRemove().forEach(e -> {
                             double opacity = e.getImageOpacity();
                             e.setImageOpacity(opacity >= 0.1 ? opacity - fadeRate : 0);
                         });
                         world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
-                        System.out.println(i + " " + (currentNanoTime - lastUpdate) + " r:" + (UPDATERATE / IMGSIZE) * (i - 1) + "-" + (UPDATERATE / IMGSIZE) * (i));
+                        i++;
+                        System.out.println((i-1) + " " + (currentNanoTime - lastUpdate) + " r:" + (updateConst) * (i - 1) + "-" + (updateConst) * (i));
+
+                    }*/
+                  /*  if (useSmoothAnimations && currentNanoTime - lastUpdate > simulationSpeed / imageSize * timesExecuted) {
+                        double fadeRate = 1.5 / (double) imageSize;
+                        world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition(1));
+                        world.getObjectsToRemove().forEach(e -> {
+                            double opacity = e.getImageOpacity();
+                            e.setImageOpacity(opacity >= 0.1 ? opacity - fadeRate : 0);
+                        });
+                        world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
+                        timesExecuted++;
+                    }*/
+                    if (currentNanoTime - lastUpdate >= simulationSpeed / (numOfUpdates - 1) * timesExecuted) {
+                        double fadeRate = 1.5 / (double) imageSize;
+                        world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> ((LifeForm) e).updatePosition(imageSize / numOfUpdates));
+                        world.getObjectsToRemove().forEach(e -> {
+                            double opacity = e.getImageOpacity();
+                            e.setImageOpacity(opacity >= 0.1 ? opacity - fadeRate : 0);
+                        });
+                        world.setObjectsToRemove(world.getObjectsToRemove().stream().filter(e -> e.getImageOpacity() > 0).collect(Collectors.toSet()));
+                        timesExecuted++;
                     }
-                    if (currentNanoTime - lastUpdate > UPDATERATE) {
 
-                            world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> {
-                                ((LifeForm) e).setCurrentX(e.getTargetX() * IMGSIZE);
-                                ((LifeForm) e).setCurrentY(e.getTargetY() * IMGSIZE);
-                                if (!useSmoothAnimations)
-                                    world.getObjectsToRemove().clear();
-                            });
+                    if (currentNanoTime - lastUpdate > simulationSpeed) {
 
-                        i = 0;
+                        world.getEntities().stream().filter(e -> e instanceof LifeForm).forEach(e -> {
+                            ((LifeForm) e).setCurrentX(e.getTargetX() * imageSize);
+                            ((LifeForm) e).setCurrentY(e.getTargetY() * imageSize);
+                            if (!useSmoothAnimations)
+                                world.getObjectsToRemove().clear();
+                        });
+
+                        timesExecuted = 0;
                         world.run();
+
+
+                    }
+
+                    draw();
+                    if (currentNanoTime - lastUpdate > simulationSpeed) {
                         lastUpdate = currentNanoTime;
                     }
+
                 }
-                draw();
 
 
             }

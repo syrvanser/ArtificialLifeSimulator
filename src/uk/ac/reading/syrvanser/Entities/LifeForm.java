@@ -4,7 +4,8 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
-import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
+import static uk.ac.reading.syrvanser.Graphics.GUIInterface.imageSize;
+
 
 /**
  * Created by syrvanser on 07/11/2016.
@@ -12,14 +13,14 @@ import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
  * @author syrvanser
  */
 public class LifeForm extends AnEntity {
-    private int currentX;
-    private int currentY;
+    public static int dt;
+    private double currentX;
+    private double currentY;
     private int detectionRadius = 5;
-
     public LifeForm(String species, char symbol, int hPosition, int vPosition, AWorld world) {
         super(species, symbol, hPosition, vPosition, 100000, world);
-        this.currentX = targetX * IMGSIZE;
-        this.currentY = targetY * IMGSIZE;
+        this.currentX = targetX * imageSize;
+        this.currentY = targetY * imageSize;
         this.image = new Image("/uk/ac/reading/syrvanser/img/doge.png");
     }
 
@@ -40,19 +41,20 @@ public class LifeForm extends AnEntity {
         this.detectionRadius = detectionRadius;
     }
 
-    public void updatePosition() {
+    public void updatePosition(double distance) {
 
-        int realX = targetX * IMGSIZE;
-        int realY = targetY * IMGSIZE;
+        double realX = targetX * imageSize;
+        double realY = targetY * imageSize;
         if (currentX != realX)
-            currentX += (realX > currentX ? 1 : -1);
+            currentX += distance * (realX > currentX ? 1 : -1);
         if (currentY != realY)
-            currentY += (realY > currentY ? 1 : -1);
+            currentY += distance * (realY > currentY ? 1 : -1);
+        //(Math.abs(currentY-realY)/distance)*
     }
 
     @Override
     public void display(GUIInterface i) {
-        i.show(image, currentX, currentY, imageOpacity);                            // just send details the entity to the interface
+        i.show(image, (int) (currentX), (int) (currentY), imageOpacity);                            // just send details the entity to the interface
     }
 
     @Override
@@ -72,11 +74,7 @@ public class LifeForm extends AnEntity {
     @Override
     public String toString() {
         {
-            return "LifeForm{" +
-                    "species='" + species + '\'' +
-                    ", X=" + targetX +
-                    ", Y=" + targetY +
-                    '}';
+            return species + " at " + targetX + ", " + targetY;
         }
     }
 }

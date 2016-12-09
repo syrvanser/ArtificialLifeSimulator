@@ -5,7 +5,7 @@ import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 import uk.ac.reading.syrvanser.Logic.Direction;
 
-import static uk.ac.reading.syrvanser.Graphics.GUIInterface.IMGSIZE;
+import static uk.ac.reading.syrvanser.Graphics.GUIInterface.imageSize;
 
 /**
  * Created by syrvanser on 10/10/2016.
@@ -138,7 +138,7 @@ public abstract class AnEntity {
 
     public void display(GUIInterface i) {
 
-        i.show(image, targetX * IMGSIZE, targetY * IMGSIZE, imageOpacity);                            // just send details the entity to the interface
+        i.show(image, targetX * imageSize, targetY * imageSize, imageOpacity);                            // just send details the entity to the interface
     }
 
 }
