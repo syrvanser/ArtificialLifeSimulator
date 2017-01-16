@@ -5,9 +5,9 @@ import uk.ac.reading.syrvanser.Logic.AWorld;
 import uk.ac.reading.syrvanser.Logic.Edible;
 
 /**
- * Created by syrvanser on 07/11/2016.
- * This class represents food
+ * This class represents food that can be eaten by herbivore life forms
  * @author syrvanser
+ * @since 07/11/2016
  */
 public class Food extends AnEntity implements Edible {
     public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/pizza.png");

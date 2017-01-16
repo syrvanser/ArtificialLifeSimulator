@@ -4,11 +4,11 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 11/01/2017.
  * A class for carnivore entities
  * Each entity group has a hierarchic level
  * Only entities which are one level lower can be eaten
  * @author syrvanser
+ * @since 11/01/2017
  */
 public class Carnivore extends LifeForm {
 

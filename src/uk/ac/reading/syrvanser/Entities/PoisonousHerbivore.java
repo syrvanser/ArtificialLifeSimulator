@@ -5,9 +5,9 @@ import uk.ac.reading.syrvanser.Logic.AWorld;
 import uk.ac.reading.syrvanser.Logic.Poisonous;
 
 /**
- * Created by syrvanser on 15/01/2017.
- * Poisonous herbivore, predators die when eat it
+ * Class for poisonous herbivores (predators die when they eat them)
  * @author syrvanser
+ * @since 15/01/2017
  */
 public class PoisonousHerbivore extends Herbivore implements Poisonous {
     public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/AND.png");
@@ -15,6 +15,7 @@ public class PoisonousHerbivore extends Herbivore implements Poisonous {
     /**
      * Constructor
      *
+     * @param species species name
      * @param hPosition horizontal position
      * @param vPosition vertical position
      * @param world     world it belongs to

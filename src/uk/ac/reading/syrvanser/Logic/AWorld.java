@@ -8,10 +8,10 @@ import java.util.*;
 import static uk.ac.reading.syrvanser.Logic.Direction.*;
 
 /**
- * Created by syrvanser on 10/10/2016.
- * This class represents a single world
- * It handles all logic and deals with entity management.
+ * Representation of a single world
+ * This class handles all logic and deals with entity management.
  * @author syrvanser
+ * @since 10/10/2016.
  */
 public class AWorld {
     private static Random rng = new Random();

@@ -5,9 +5,9 @@ import uk.ac.reading.syrvanser.Logic.AWorld;
 import uk.ac.reading.syrvanser.Logic.Poisonous;
 
 /**
- * Created by syrvanser on 10/01/2017.
- * Poisonous food, life forms die when they eat it
+ * Poisonous food (life forms die when they eat it)
  * @author syrvanser
+ * @since 10/01/2017
  */
 public class PoisonousFood extends Food implements Poisonous {
 

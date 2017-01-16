@@ -4,9 +4,10 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 11/01/2017.
- *
+ * Class for herbivore life forms
+ * Those life forms are the only once that can eat objects from the Food class
  * @author syrvanser
+ * @since 07/11/2016
  */
 public class Herbivore extends LifeForm {
     public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/RM.png");
@@ -14,6 +15,7 @@ public class Herbivore extends LifeForm {
     /**
      * Constructor
      *
+     * @param species species name
      * @param hPosition horizontal position
      * @param vPosition vertical position
      * @param world     world it belongs to

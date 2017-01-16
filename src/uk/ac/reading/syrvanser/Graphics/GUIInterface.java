@@ -30,10 +30,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by syrvanser on 17/10/2016.
- * Main interface class and the entry point of the program
+ * The main interface class and the entry point of the program
  * Handles all gui-related tasks, including animation and buttons
  * @author syrvanser
+ * @since 17/10/2016
  */
 public class GUIInterface extends Application {
 

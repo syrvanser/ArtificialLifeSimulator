@@ -1,9 +1,9 @@
 package uk.ac.reading.syrvanser.Logic;
 
 /**
- * Created by syrvanser on 15/01/2017.
  * Generic class implementing a 3-tuple
  * @author syrvanser
+ * @since 15/01/2017
  */
 
 @SuppressWarnings({"unused", "WeakerAccess"})

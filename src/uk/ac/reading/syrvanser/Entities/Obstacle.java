@@ -4,9 +4,9 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 07/11/2016.
  * Obstacle class, immobile object that cannot be walked through
  * @author syrvanser
+ * @since 07/11/2016
  */
 public class Obstacle extends AnEntity {
 

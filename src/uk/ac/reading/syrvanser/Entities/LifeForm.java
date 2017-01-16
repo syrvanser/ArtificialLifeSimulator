@@ -9,10 +9,10 @@ import static uk.ac.reading.syrvanser.Graphics.GUIInterface.imageSize;
 
 
 /**
- * Created by syrvanser on 07/11/2016.
- * Abstract class for life forms
+ * Abstract class implementing life forms
  * Stores information about actual position on the screen and definitions for some life form-specific methods
  * @author syrvanser
+ * @since 07/11/2016
  */
 public abstract class LifeForm extends AnEntity implements Edible {
 
@@ -23,6 +23,7 @@ public abstract class LifeForm extends AnEntity implements Edible {
     /**
      * Constructor
      *
+     * @param species species name
      * @param hPosition horizontal position
      * @param vPosition vertical position
      * @param world     world it belongs to
@@ -72,7 +73,7 @@ public abstract class LifeForm extends AnEntity implements Edible {
 
     /**
      * Getter for the detection radius
-     * @return detection radius, >= 0
+     * @return detection radius, always greater or equal to 0
      */
     public int getDetectionRadius() {
         return detectionRadius;
@@ -80,7 +81,7 @@ public abstract class LifeForm extends AnEntity implements Edible {
 
     /**
      * Setter for the detection radius
-     * @param detectionRadius detection radius, >= 0
+     * @param detectionRadius detection radius, always greater or equal to 0
      */
     public void setDetectionRadius(int detectionRadius) {
         if (detectionRadius >= 0) {

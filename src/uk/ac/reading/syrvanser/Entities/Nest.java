@@ -4,10 +4,10 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 16/01/2017.
  * Nest class, generates a random entity after a certain amount of time
  * Works as an obstacle
  * @author syrvanser
+ * @since 16/01/2017
  */
 public class Nest extends Obstacle {
 

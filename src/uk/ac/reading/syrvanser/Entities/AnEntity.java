@@ -7,11 +7,11 @@ import uk.ac.reading.syrvanser.Logic.AWorld;
 import static uk.ac.reading.syrvanser.Graphics.GUIInterface.imageSize;
 
 /**
- * Created by syrvanser on 10/10/2016.
  * An abstract class representing a simple Entity
  * Stores information about name, position, energy, etc.
  * All entities inherit from this class
  * @author syrvanser
+ * @since 10/10/2016.
  */
 public abstract class AnEntity {
 
@@ -46,7 +46,7 @@ public abstract class AnEntity {
     /**
      * Getter for the entity counter
      *
-     * @return entity counter, always >= 0
+     * @return entity counter, always greater or equal to 0
      */
     public static int getEntityCounter() {
         return entityCounter;

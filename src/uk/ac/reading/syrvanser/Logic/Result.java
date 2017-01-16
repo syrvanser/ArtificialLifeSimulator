@@ -1,9 +1,9 @@
 package uk.ac.reading.syrvanser.Logic;
 
 /**
- * Created by syrvanser on 29/11/2016.
  * Class for a brief summary of information about an entity
  * @author syrvanser
+ * @since 29/11/2016
  */
 public class Result {
     public String n;

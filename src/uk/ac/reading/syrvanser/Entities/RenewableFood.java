@@ -4,10 +4,10 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 15/01/2017.
- * Renewable food, regenerates over time
+ * Class for renewable food which regenerates over time
  * Cannot be walked through when it is growing
  * @author syrvanser
+ * @since 15/01/2017
  */
 public class RenewableFood extends Food {
     public static final int timeToGrow = 5;
