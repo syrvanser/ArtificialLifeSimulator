@@ -1,9 +1,7 @@
 TODO:
 
 -Add Help
--Add smooth animations switch
--Add speed switch
 -Custom images (?)
--Side panel for map info //kinda done, use a window for now
--SLider for the new world window
--active input check for modify
+-rewrite draw functions
+-Slider for the new world window
+

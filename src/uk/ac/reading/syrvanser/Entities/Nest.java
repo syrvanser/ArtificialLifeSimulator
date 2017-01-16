@@ -4,18 +4,17 @@ import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
 
 /**
- * Created by syrvanser on 07/11/2016.
+ * Created by syrvanser on 16/01/2017.
  *
  * @author syrvanser
  */
-public class Obstacle extends AnEntity {
+public class Nest extends Obstacle {
 
-    public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/wall.png");
+    public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/nest.png");
 
-    public Obstacle(int hPosition, int vPosition, AWorld world) {
-        super("Obstacle", hPosition, vPosition, 0, world);
+    public Nest(int hPosition, int vPosition, AWorld world) {
+        super(hPosition, vPosition, world);
     }
-
 
     @Override
     public Image getImage() {
@@ -24,12 +23,11 @@ public class Obstacle extends AnEntity {
 
     @Override
     public String toText() {
-        return "Obstacle{" +
+        return "Nest{" +
                 ", X=" + targetX +
                 ", Y=" + targetY +
                 ", energy=" + energy +
                 ", uniqueID=" + uniqueID +
                 '}';
     }
-
 }

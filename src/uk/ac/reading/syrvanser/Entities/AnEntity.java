@@ -3,7 +3,6 @@ package uk.ac.reading.syrvanser.Entities;
 import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 import uk.ac.reading.syrvanser.Logic.AWorld;
-import uk.ac.reading.syrvanser.Logic.Direction;
 
 import static uk.ac.reading.syrvanser.Graphics.GUIInterface.imageSize;
 
@@ -16,36 +15,30 @@ public abstract class AnEntity {
 
 
     private static int entityCounter = 0;
-    Image image;
     String species;
-    char symbol;
     int targetX;
     int targetY;
     int energy;
     int uniqueID;
     double imageOpacity = 1;
-    private AWorld world;
+    AWorld world;
 
     /**
      * Constructor
      *
      * @param species   species name
-     * @param symbol    species Symbol
      * @param hPosition horizontal position
      * @param vPosition vertical position
      * @param energy    energy of the entity
      * @param world     world it belongs to
      */
-    AnEntity(String species, char symbol, int hPosition, int vPosition, int energy, AWorld world) {
+    AnEntity(String species, int hPosition, int vPosition, int energy, AWorld world) {
         this.species = species;
-        this.symbol = symbol;
         this.targetX = hPosition;
         this.targetY = vPosition;
         this.energy = energy;
         this.uniqueID = entityCounter++;
         this.world = world;
-
-
     }
 
     public static int getEntityCounter() {
@@ -56,6 +49,7 @@ public abstract class AnEntity {
         AnEntity.entityCounter = 0;
     }
 
+    public abstract Image getImage();
 
     public double getImageOpacity() {
         return imageOpacity;
@@ -100,45 +94,14 @@ public abstract class AnEntity {
     public abstract String toText();
 
     @Override
-    public abstract String toString();
-
-    /**
-     * @param d     Direction
-     * @param range detection range
-     * @return true if there is food at the given direction, false otherwise
-     */
-    public int smellFood(Direction d, int range) {
-        int xVal = this.targetX;
-        int yVal = this.targetY;
-        for (int i = 1; i <= range; i++) {
-            switch (d) {
-                case N:
-                    yVal--;
-                    break;
-                case S:
-                    yVal++;
-                    break;
-                case E:
-                    xVal++;
-                    break;
-                case W:
-                    xVal--;
-                    break;
-            }
-            AnEntity entity = world.getEntity(xVal, yVal);
-            if (entity instanceof Food)
-                return i;
-            if (entity == null)
-                continue;
-            if (entity instanceof LifeForm || entity instanceof Obstacle)
-                return -1;
+    public String toString() {
+        {
+            return species + " at " + targetX + ", " + targetY;
         }
-        return -1;
     }
 
     public void display(GUIInterface i) {
-
-        i.show(image, targetX * imageSize, targetY * imageSize, imageOpacity);                            // just send details the entity to the interface
+        i.show(getImage(), targetX * imageSize, targetY * imageSize, imageOpacity);                            // just send details the entity to the interface
     }
 
 }

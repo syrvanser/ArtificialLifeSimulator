@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ArtificialLifeSimulator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ArtificialLifeSimulator_jar</output-path>
+    <root id="archive" name="ArtificialLifeSimulator.jar">
+      <element id="module-output" name="ArtificialLifeSimulator" />
+    </root>
+  </artifact>
+</component>

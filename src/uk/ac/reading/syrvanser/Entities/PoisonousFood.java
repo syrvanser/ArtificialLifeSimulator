@@ -2,34 +2,35 @@ package uk.ac.reading.syrvanser.Entities;
 
 import javafx.scene.image.Image;
 import uk.ac.reading.syrvanser.Logic.AWorld;
+import uk.ac.reading.syrvanser.Logic.Poisonous;
 
 /**
- * Created by syrvanser on 07/11/2016.
+ * Created by syrvanser on 10/01/2017.
  *
  * @author syrvanser
  */
-public class Obstacle extends AnEntity {
+public class PoisonousFood extends Food implements Poisonous {
 
-    public static final Image classImage = new Image("/uk/ac/reading/syrvanser/img/wall.png");
+    public final static Image classImage = new Image("/uk/ac/reading/syrvanser/img/poison.png");
 
-    public Obstacle(int hPosition, int vPosition, AWorld world) {
-        super("Obstacle", hPosition, vPosition, 0, world);
+    public PoisonousFood(int hPosition, int vPosition, AWorld world) {
+        super(hPosition, vPosition, world);
     }
-
 
     @Override
     public Image getImage() {
-        return classImage;
+        return PoisonousFood.classImage;
     }
 
     @Override
     public String toText() {
-        return "Obstacle{" +
+        return "Poisonous Food{" +
                 ", X=" + targetX +
                 ", Y=" + targetY +
                 ", energy=" + energy +
                 ", uniqueID=" + uniqueID +
                 '}';
     }
+
 
 }

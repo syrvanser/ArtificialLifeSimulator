@@ -1,9 +1,6 @@
 package uk.ac.reading.syrvanser.Logic;
 
-import uk.ac.reading.syrvanser.Entities.AnEntity;
-import uk.ac.reading.syrvanser.Entities.Food;
-import uk.ac.reading.syrvanser.Entities.LifeForm;
-import uk.ac.reading.syrvanser.Entities.Obstacle;
+import uk.ac.reading.syrvanser.Entities.*;
 import uk.ac.reading.syrvanser.Graphics.GUIInterface;
 
 import java.util.*;
@@ -22,13 +19,14 @@ public class AWorld {
     private int maxFood = 0;
     private int foodAmount;
 
+    private byte maxLevel = 2;
 
     private Set<AnEntity> objectsToRemove = new HashSet<>();
     private int lifeAmount;
     private int sizeX;
     private int sizeY;
     private List<AnEntity> entities;
-    private List<Map.Entry<String, Integer>> speciesList = new ArrayList<>();
+    private List<Tuple<String, Integer, Byte>> speciesList = new ArrayList<>();
 
     public AWorld(int hSize, int vSize, int maxEntities) {
         this.sizeY = vSize;
@@ -52,6 +50,7 @@ public class AWorld {
         return objectsToRemove;
     }
 
+
     public void setObjectsToRemove(Set<AnEntity> objectsToRemove) {
         this.objectsToRemove = objectsToRemove;
     }
@@ -72,7 +71,7 @@ public class AWorld {
         this.maxFood = maxFood;
     }
 
-    public List<Map.Entry<String, Integer>> getSpeciesList() {
+    public List<Tuple<String, Integer, Byte>> getSpeciesList() {
         return speciesList;
     }
 
@@ -83,9 +82,9 @@ public class AWorld {
     public String getCurrentConfig() {
         StringBuilder configuration = new StringBuilder("");
         configuration.append(sizeX).append(" ").append(sizeY).append(" ").append(maxFood * 100 / (sizeX * sizeY)).append(" ").append(maxObstacles * 100 / (sizeX * sizeY));
-        for (Map.Entry<String, Integer> spec :
+        for (Tuple<String, Integer, Byte> spec :
                 speciesList) {
-            configuration.append(" ").append(spec.getKey()).append(" ").append(spec.getValue());
+            configuration.append(" ").append(spec.getFirst()).append(" ").append(spec.getSecond());
         }
         return new String(configuration);
     }
@@ -104,6 +103,7 @@ public class AWorld {
         AnEntity.resetEntityCounter();
         foodAmount = 0;
         lifeAmount = 0;
+        maxLevel = 2;
 
     }
 
@@ -118,16 +118,78 @@ public class AWorld {
      * Creates and adds an entity
      *
      * @param str entity name
-     * @param c   first character
      * @return true if successful, false otherwise
      */
-    public boolean addEntity(String str, char c) {
+    private boolean addEntity(String str, int hPosition, int vPosition) {
         //Scanner s = new Scanner(System.in);
 
         if (AnEntity.getEntityCounter() >= maxEntities)
             return false;
         //if (AnEntity.getEntityCounter() > sizeX * sizeY)
         //  return false;
+
+        AnEntity newEnt;
+        switch (str) {
+            case "Food":
+                int result = rng.nextInt(100);
+                if (result < 10) {
+                    newEnt = new PoisonousFood(hPosition, vPosition, this);
+                } else if (result < 30) {
+                    newEnt = new RenewableFood(hPosition, vPosition, this);
+                } else {
+                    newEnt = new Food(hPosition, vPosition, this);
+                    //System.out.println();
+                }
+                maxFood++;
+                foodAmount++;
+                break;
+            case "Obstacle":
+                if (rng.nextInt(100) > 10) {
+                    newEnt = new Obstacle(hPosition, vPosition, this);
+                } else {
+                    newEnt = new Nest(hPosition, vPosition, this);
+                }
+                maxObstacles++;
+                break;
+            default:
+                byte level = -1;
+                for (Tuple t :
+                        speciesList) {
+                    if (t.getFirst().equals(str)) {
+                        level = (byte) t.getThird();
+                        break;
+                    }
+                }
+                if (level == -1) {
+                    if (rng.nextInt(100) > 25) {
+                        level = 1;
+                    } else {
+
+                        level = (byte) (rng.nextInt(maxLevel) + 2);
+                        if (level == maxLevel + 1)
+                            maxLevel++;
+                    }
+                }
+                if (level == 1) {
+                    if (rng.nextInt(100) > 10) {
+                        newEnt = new Herbivore(str, hPosition, vPosition, this);
+                    } else {
+                        newEnt = new PoisonousHerbivore(str, hPosition, vPosition, this);
+                    }
+                } else {
+                    newEnt = new Carnivore(str, hPosition, vPosition, this, level);
+                }
+                lifeAmount++;
+                break;
+
+        }
+        entities.add(newEnt);
+        addTuple(new Tuple<>(newEnt.getSpecies(), 1, newEnt instanceof LifeForm ? ((LifeForm) newEnt).getLevel() : -1));
+        return true;
+    }
+
+
+    public boolean addEntity(String str) {
         int hPosition;
         int vPosition;
 
@@ -135,28 +197,9 @@ public class AWorld {
             hPosition = rng.nextInt(sizeX);
             vPosition = rng.nextInt(sizeY);
         } while (getEntity(hPosition, vPosition) != null);
-        AnEntity newEnt;
-        switch (str) {
-            case "Food":
-                newEnt = new Food(hPosition, vPosition, this);
-                maxFood++;
-                foodAmount++;
-                break;
-            case "Obstacle":
-                newEnt = new Obstacle(hPosition, vPosition, this);
-                maxObstacles++;
-                break;
-            default:
-                newEnt = new LifeForm(str, c, hPosition, vPosition, this);
-                lifeAmount++;
-                break;
 
-        }
-        entities.add(newEnt);
-        addPair(new AbstractMap.SimpleEntry<>(newEnt.getSpecies(), 1));
-        return true;
+        return addEntity(str, hPosition, vPosition);
     }
-
 
     /**
      * Checks if there are any entities at the given position
@@ -186,17 +229,7 @@ public class AWorld {
         if (x < 0 || y < 0 || x >= sizeX || y >= sizeY)
             return false;
         AnEntity tmp = getEntity(x, y);
-        return (tmp == null || tmp instanceof Food);
-    }
-
-
-    /**
-     * @param x x coordinate
-     * @param y y coordinate
-     * @return true if there is food at (x,y), false otherwise
-     */
-    public boolean checkFood(int x, int y) {
-        return (getEntity(x, y) instanceof Food);
+        return (tmp == null);
     }
 
     /**
@@ -207,12 +240,21 @@ public class AWorld {
     private void eatFood(AnEntity entity) {
         int x = entity.getTargetX();
         int y = entity.getTargetY();
-        entities.stream().filter(e -> e != null && e instanceof Food && e.getTargetX() == x && e.getTargetY() == y).forEach(e -> {
-            entity.setEnergy(entity.getEnergy() + e.getEnergy());
-            objectsToRemove.add(e);
-            entities.set(entities.indexOf(e), null);
-            foodAmount--;
+        entities.stream().filter(e -> e != entity && e != null && e instanceof Edible && e.getTargetX() == x && e.getTargetY() == y).forEach(e -> {
+            if (e instanceof Poisonous) {
+                entity.setEnergy(0);
+            } else {
+                entity.setEnergy(entity.getEnergy() + e.getEnergy());
+            }
+            if (e instanceof RenewableFood) {
+                ((RenewableFood) e).eat();
+            } else {
+                objectsToRemove.add(e);
+                entities.set(entities.indexOf(e), null);
+                foodAmount--;
+            }
         });
+
         //entities.removeAll(Collections.singleton(null));
     }
 
@@ -225,8 +267,18 @@ public class AWorld {
      * Run simulation once
      */
     public void run() {
+        Map<Integer, Integer> spawn = new HashMap<>();
+        Collections.shuffle(entities);
         for (AnEntity ent : entities) {
-            if (ent != null && ent instanceof LifeForm) {
+            if (ent instanceof Nest) {
+                if (rng.nextInt(100) < 5) {
+                    spawn.put(ent.getTargetX(), ent.getTargetY());
+                }
+            }
+            if (ent instanceof RenewableFood && !((RenewableFood) ent).getCanEat()) {
+                ((RenewableFood) ent).update();
+            }
+            if (ent instanceof LifeForm) {
                 LifeForm currentEntity = (LifeForm) ent;
                 int energy = currentEntity.getEnergy();
                 currentEntity.setEnergy(energy - 1); //lose 1 energy when moving
@@ -234,55 +286,38 @@ public class AWorld {
 
                 //Add direction to the list if there's food in it
 
-                    int r = currentEntity.smellFood(N, currentEntity.getDetectionRadius());
-                    if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(N, r));
+                int r = currentEntity.smellFood(N, currentEntity.getDetectionRadius());
+                if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(N, r));
 
                 r = currentEntity.smellFood(S, currentEntity.getDetectionRadius());
-                    if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(S, r));
+                if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(S, r));
 
                 r = currentEntity.smellFood(E, currentEntity.getDetectionRadius());
-                    if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(E, r));
+                if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(E, r));
 
                 r = currentEntity.smellFood(W, currentEntity.getDetectionRadius());
-                    if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(W, r));
+                if (r != -1) directions.add(new AbstractMap.SimpleEntry<>(W, r));
 
                 if (directions.isEmpty()) { //if no food around move to the random direction
-
-
-              /*  System.out.println("DEBUG: random");
-                System.out.println(e.smellFood(N, 5) + " " + canMove(e.getTargetX(), e.getTargetY() - 1));
-                System.out.println(e.smellFood(S, 5) + " " + canMove(e.getTargetX(), e.getTargetY() + 1));
-                System.out.println(e.smellFood(E, 5) + " " + canMove(e.getTargetX() + 1, e.getTargetY()));
-                System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY())); */
-
-                    Direction d = Direction.getRandomDirection(); //Pick a random direction
-                    int randomX = currentEntity.getTargetX();
-                    int randomY = currentEntity.getTargetY();
-                    switch (d) {
-                        case N:
-                            randomY--;
-                            break;
-                        case S:
-                            randomY++;
-                            break;
-                        case W:
-                            randomX--;
-                            break;
-                        case E:
-                            randomX++;
-                            break;
+                    //System.out.println("Empty");
+                    int X = currentEntity.getTargetX();
+                    int Y = currentEntity.getTargetY();
+                    if (canMove(X + 1, Y))
+                        directions.add(new AbstractMap.SimpleEntry<>(E, 1));
+                    if (canMove(X - 1, Y))
+                        directions.add(new AbstractMap.SimpleEntry<>(W, 1));
+                    if (canMove(X, Y + 1))
+                        directions.add(new AbstractMap.SimpleEntry<>(S, 1));
+                    if (canMove(X, Y - 1))
+                        directions.add(new AbstractMap.SimpleEntry<>(N, 1));
+                    if (!directions.isEmpty()) {
+                        int index = rng.nextInt(directions.size());
+                        Direction d = directions.get(index).getKey();
+                        currentEntity.move(d);
                     }
 
-                    if (canMove(randomX, randomY)) {
-                        currentEntity.setTargetX(randomX);
-                        currentEntity.setTargetY(randomY);
-                    }
                 } else { //if not empty pick a random direction from the list
-                   /* System.out.println("DEBUG: food");
-                    System.out.println(e.smellFood(N, 5) + " " + canMove(e.getTargetX(), e.getTargetY() - 1));
-                    System.out.println(e.smellFood(S, 5) + " " + canMove(e.getTargetX(), e.getTargetY() + 1));
-                    System.out.println(e.smellFood(E, 5) + " " + canMove(e.getTargetX() + 1, e.getTargetY()));
-                    System.out.println(e.smellFood(W, 5) + " " + canMove(e.getTargetX() - 1, e.getTargetY()))*/
+                    // System.out.println("Not empty");
                     int minimum = Integer.MAX_VALUE;
 
                     for (Map.Entry<Direction, Integer> entry :
@@ -300,20 +335,7 @@ public class AWorld {
 
                     int index = rng.nextInt(dir.size());
                     Direction d = dir.get(index);
-                    switch (d) {
-                        case N:
-                            currentEntity.setTargetY(currentEntity.getTargetY() - 1);
-                            break;
-                        case E:
-                            currentEntity.setTargetX(currentEntity.getTargetX() + 1);
-                            break;
-                        case S:
-                            currentEntity.setTargetY(currentEntity.getTargetY() + 1);
-                            break;
-                        case W:
-                            currentEntity.setTargetX(currentEntity.getTargetX() - 1);
-                            break;
-                    }
+                    currentEntity.move(d);
                 }
 
                 eatFood(currentEntity);
@@ -326,6 +348,10 @@ public class AWorld {
                 }
             }
         }
+
+        spawn.forEach((x, y) -> addEntity(speciesList.get(rng.nextInt(speciesList.size())).getFirst(), x, y));
+        spawn.clear();
+
         //noinspection SuspiciousMethodCalls
         entities.removeAll(Collections.singleton(null));
     }
@@ -335,13 +361,13 @@ public class AWorld {
         lifeAmount--;
     }
 
-    private void addPair(Map.Entry<String, Integer> pair) {
-        if (pair.getKey().equals("Obstacle") || pair.getKey().equals("Food"))
+    private void addTuple(Tuple<String, Integer, Byte> pair) {
+        if (pair.getFirst().equals("Obstacle") || pair.getFirst().equals("Food"))
             return;
-        for (Map.Entry<String, Integer> e :
+        for (Tuple<String, Integer, Byte> e :
                 speciesList) {
-            if (e.getKey().equals(pair.getKey())) {
-                e.setValue(e.getValue() + pair.getValue());
+            if (e.getFirst().equals(pair.getFirst())) {
+                e.setSecond(e.getSecond() + pair.getSecond());
                 return;
             }
         }
@@ -353,19 +379,18 @@ public class AWorld {
         for (AnEntity entity : objectsToRemove) entity.display(i);
     }
 
-    public void removePair(Map.Entry<String, Integer> pair) {
-        if (pair.getKey().equals("Obstacle") || pair.getKey().equals("Food"))
+    public void removeTuple(Tuple<String, Integer, Byte> pair) {
+        if (pair.getFirst().equals("Obstacle") || pair.getFirst().equals("Food"))
             return;
-        for (Map.Entry<String, Integer> e :
+        for (Tuple<String, Integer, Byte> e :
                 speciesList) {
-            if (e.getKey().equals(pair.getKey())) {
-                e.setValue(e.getValue() - pair.getValue());
-                if (e.getValue() <= 0) {
+            if (e.getFirst().equals(pair.getFirst())) {
+                e.setSecond(e.getSecond() - pair.getSecond());
+                if (e.getSecond() <= 0) {
                     speciesList.remove(e);
                 }
                 return;
             }
         }
     }
-
 }
